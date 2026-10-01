@@ -5,4 +5,7 @@
     <string name="package_name">com.studysync.app</string>
     <string name="custom_url_scheme">com.studysync.app</string>
     <string name="widget_description">今日の予定と未設定のタスクを一覧で表示します</string>
+    <string name="widget_next_description">進行中、またはこの次の予定を大きく表示します</string>
+    <string name="widget_ring_description">今日の完了数、勉強時間、残りの復習を表示します</string>
+    <string name="widget_week_description">この1週間の勉強時間をグラフで表示します</string>
 </resources>

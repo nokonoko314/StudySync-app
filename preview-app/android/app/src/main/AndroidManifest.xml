@@ -39,6 +39,24 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/task_widget_info" />
         </receiver>
+        <receiver android:name=".NextWidgetProvider" android:label="次の予定" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/next_widget_info" />
+        </receiver>
+        <receiver android:name=".ProgressWidgetProvider" android:label="今日の進み具合" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/ring_widget_info" />
+        </receiver>
+        <receiver android:name=".WeekWidgetProvider" android:label="今週の勉強時間" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/week_widget_info" />
+        </receiver>
         <service android:name=".TaskWidgetService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
     </application>
 

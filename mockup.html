@@ -1781,17 +1781,21 @@ body{
             const WB = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
             if(!WB) return;
             const today = Math.floor((Date.now() - BASE_DATE.getTime()) / 86400000);
+            const keyOf = d => { const x = new Date(BASE_DATE.getTime() + d * 86400000); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+            const hex = c => /^#[0-9a-f]{6}$/i.test(c) ? c : '#8892A2';
+            const initial = t => Array.from(t.subject || t.title || '?')[0];
             const days = {};
             for(let d = today; d <= today + 1; d++){
-              const date = new Date(BASE_DATE.getTime() + d * 86400000);
-              const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-              days[key] = scheduledTasks
+              days[keyOf(d)] = scheduledTasks
                 .filter(t => Math.floor(t.startMin / DAY_MIN) === d)
                 .sort((a, b) => a.startMin - b.startMin)
-                .map(t => ({ s:t.startMin - d * DAY_MIN, d:t.dur, t:t.title, c:/^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#8892A2', r:t.isReview ? 1 : 0, x:t.status === 'completed' ? 1 : 0 }));
+                .map(t => ({ s:t.startMin - d * DAY_MIN, d:t.dur, t:t.title, n:initial(t), c:hex(t.color), r:t.isReview ? 1 : 0, x:t.status === 'completed' ? 1 : 0 }));
             }
             // 時間軸にまだ置いていないタスク(未設定)も、ウィジェットの今日の予定の下に出す
-            days.pool = poolTasks.map(t => ({ d:t.dur || 0, t:t.title, c:/^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#8892A2' }));
+            days.pool = poolTasks.map(t => ({ d:t.dur || 0, t:t.title, n:initial(t), c:hex(t.color) }));
+            // 「今週の勉強時間」ウィジェット用: 日ごとの勉強時間(分)。日付が変わっても困らないよう明日の分まで入れる
+            days.week = {};
+            for(let d = today - 6; d <= today + 1; d++) days.week[keyOf(d)] = Math.round(studiedMinutes(tasksForDay(d)));
             const data = JSON.stringify(days);
             if(data === lastWidgetSig) return;
             lastWidgetSig = data;
@@ -5429,7 +5433,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.9.2';
+            const APP_VERSION = '1.10.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -5950,7 +5954,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>未設定のタスクをタップで編集・削除できるように(時間を指定すると時間軸へ)、削除などのお知らせはほかの場所に触れるとすぐ消えるように</span></li>
+                  <li><b>${APP_VERSION}</b><span>ウィジェットに教科の頭文字、新しいウィジェット3種類(次の予定・今日の進み具合・今週の勉強時間)、予定の開始・終了時刻に合わせて自動で更新</span></li>
+                  <li><b>1.9.2</b><span>未設定のタスクをタップで編集・削除できるように(時間を指定すると時間軸へ)、削除などのお知らせはほかの場所に触れるとすぐ消えるように</span></li>
                   <li><b>1.9.1</b><span>ウィジェットで今日の予定をすべてスクロールして見られるように、未設定のタスクも表示</span></li>
                   <li><b>1.9.0</b><span>ホーム画面ウィジェット「今日の予定」(進み具合と予定、日付が変わると自動で切り替え)</span></li>
                   <li><b>1.8.4</b><span>アプリアイコンを新デザインに(忘却曲線と復習のチェック)</span></li>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ウィジェット「今週の勉強時間」(横長) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_root" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@drawable/widget_background" android:padding="16dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="6dp"
+            android:src="@drawable/widget_mark" android:importantForAccessibility="no" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="今週の勉強時間" android:textColor="#EEF1F6" android:textSize="14sp" android:textStyle="bold" />
+        <TextView android:id="@+id/w_total" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="#4FC3E0" android:textSize="12sp" android:textStyle="bold" />
+    </LinearLayout>
+
+    <ImageView android:id="@+id/w_chart" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:layout_marginTop="8dp" android:scaleType="fitCenter" android:importantForAccessibility="no" />
+</LinearLayout>

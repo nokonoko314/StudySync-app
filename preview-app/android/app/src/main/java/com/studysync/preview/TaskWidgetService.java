@@ -8,15 +8,12 @@ import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * ウィジェットの一覧(スクロールできる)の各行を作る。
+ * ウィジェット「今日の予定」の一覧(スクロールできる)の各行を作る。
  * 今日の予定(未完了 → 完了済み)のあとに、「未設定」の見出しと時間軸にまだ置いていないタスクを並べる。
  */
 public class TaskWidgetService extends RemoteViewsService {
-
-    private static final int DIM = 0xFF8C95A6, TEAL = 0xFF4FC3E0, LATE = 0xFFE88A8A, TITLE = 0xFFEEF1F6, DONE = 0xFF6B7385;
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
@@ -25,8 +22,8 @@ public class TaskWidgetService extends RemoteViewsService {
 
     /** 一覧の1行。item が null なら見出し(または案内文) */
     private static final class Entry {
-        final TaskWidgetProvider.Item item; final String text; final boolean pool;
-        Entry(TaskWidgetProvider.Item item, String text, boolean pool) { this.item = item; this.text = text; this.pool = pool; }
+        final WidgetData.Item item; final String text; final boolean pool;
+        Entry(WidgetData.Item item, String text, boolean pool) { this.item = item; this.text = text; this.pool = pool; }
     }
 
     private static final class Factory implements RemoteViewsFactory {
@@ -42,16 +39,15 @@ public class TaskWidgetService extends RemoteViewsService {
         @Override
         public void onDataSetChanged() {
             entries.clear();
-            nowMin = TaskWidgetProvider.nowMinute();
-            List<TaskWidgetProvider.Item> today = TaskWidgetProvider.loadToday(context);
-            List<TaskWidgetProvider.Item> pool = TaskWidgetProvider.loadPool(context);
-            if (today != null) for (TaskWidgetProvider.Item it : today) entries.add(new Entry(it, null, false));
-            if (!pool.isEmpty()) {
+            WidgetData.Snapshot s = WidgetData.load(context);
+            nowMin = s.nowMin;
+            if (s.today != null) for (WidgetData.Item it : s.today) entries.add(new Entry(it, null, false));
+            if (!s.pool.isEmpty()) {
                 // 今日の予定がないときは、上の空欄の案内の代わりに一覧の中で伝える
-                if (today == null) entries.add(new Entry(null, "アプリを開くと今日の予定が表示されます", false));
-                else if (today.isEmpty()) entries.add(new Entry(null, "今日の予定はありません", false));
-                entries.add(new Entry(null, "未設定 " + pool.size() + "件", true));
-                for (TaskWidgetProvider.Item it : pool) entries.add(new Entry(it, null, true));
+                if (s.today == null) entries.add(new Entry(null, "アプリを開くと今日の予定が表示されます", false));
+                else if (s.today.isEmpty()) entries.add(new Entry(null, "今日の予定はありません", false));
+                entries.add(new Entry(null, "未設定 " + s.pool.size() + "件", true));
+                for (WidgetData.Item it : s.pool) entries.add(new Entry(it, null, true));
             }
         }
 
@@ -64,26 +60,28 @@ public class TaskWidgetService extends RemoteViewsService {
             if (e.item == null) {
                 RemoteViews h = new RemoteViews(context.getPackageName(), R.layout.widget_section);
                 h.setTextViewText(R.id.w_section, e.text);
-                h.setTextColor(R.id.w_section, e.pool ? TEAL : DIM);
+                h.setTextColor(R.id.w_section, e.pool ? WidgetData.TEAL : WidgetData.DIM);
                 h.setOnClickFillInIntent(R.id.w_section, new Intent());
                 return h;
             }
-            TaskWidgetProvider.Item it = e.item;
+            WidgetData.Item it = e.item;
             RemoteViews v = new RemoteViews(context.getPackageName(), R.layout.widget_row);
+            boolean active = !e.pool && !it.done && it.start <= nowMin && nowMin < it.start + it.dur;
+            boolean late = !e.pool && !it.done && nowMin >= it.start + it.dur;
             if (e.pool) {
                 v.setTextViewText(R.id.w_time, it.dur > 0 ? it.dur + "分" : "");
-                v.setTextColor(R.id.w_time, DIM);
+                v.setTextColor(R.id.w_time, WidgetData.DIM);
             } else {
-                boolean active = !it.done && it.start <= nowMin && nowMin < it.start + it.dur;
-                boolean late = !it.done && nowMin >= it.start + it.dur;
-                v.setTextViewText(R.id.w_time, String.format(Locale.US, "%d:%02d", it.start / 60, it.start % 60));
-                v.setTextColor(R.id.w_time, active ? TEAL : late ? LATE : DIM);
+                v.setTextViewText(R.id.w_time, WidgetData.time(it.start));
+                v.setTextColor(R.id.w_time, active ? WidgetData.TEAL : late ? WidgetData.LATE : WidgetData.DIM);
             }
-            boolean active = !e.pool && !it.done && it.start <= nowMin && nowMin < it.start + it.dur;
-            v.setInt(R.id.w_bar, "setColorFilter", it.color);
-            v.setInt(R.id.w_bar, "setImageAlpha", it.done ? 90 : 255);
+            // 教科の頭文字(教科の色の四角)
+            v.setInt(R.id.w_avatar_bg, "setColorFilter", it.color);
+            v.setInt(R.id.w_avatar_bg, "setImageAlpha", it.done ? 90 : 255);
+            v.setTextViewText(R.id.w_avatar, it.initial);
+            v.setTextColor(R.id.w_avatar, it.done ? 0x99FFFFFF : WidgetData.inkOn(it.color));
             v.setTextViewText(R.id.w_title, it.title);
-            v.setTextColor(R.id.w_title, it.done ? DONE : TITLE);
+            v.setTextColor(R.id.w_title, it.done ? WidgetData.DONE : WidgetData.SILVER);
             v.setInt(R.id.w_title, "setPaintFlags", it.done ? Paint.STRIKE_THRU_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG : Paint.ANTI_ALIAS_FLAG);
             String tag = it.done ? "完了" : active ? "進行中" : it.review ? "復習" : "";
             v.setTextViewText(R.id.w_tag, tag);
