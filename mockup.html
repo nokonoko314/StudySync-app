@@ -762,6 +762,19 @@ body{
 
 /* Full-bleed month grid: continuous week rows with date numbers + task/event chips + project bands */
 .cal-full{border-top:1px solid var(--line-soft);}
+:root{--sun:#D23B3B; --sat:#2C68D1;}
+:root[data-theme="dark"]{--sun:#FF7B73; --sat:#7DB0FF;}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--sun:#FF7B73; --sat:#7DB0FF;} }
+.cal-weekdays-full span.sun, .cal-daynum.sun, .cal-daynum.hol{color:var(--sun);}
+.cal-weekdays-full span.sat, .cal-daynum.sat{color:var(--sat);}
+.cal-daynum.muted.sun, .cal-daynum.muted.hol, .cal-daynum.muted.sat{opacity:.55;}
+.cal-daynum.today{color:#fff !important;}
+.cal-bar.hol-bar{background:color-mix(in srgb, var(--sun) 14%, transparent); color:var(--sun); font-weight:700;}
+.cal-bar.ev-bar{background:transparent; box-shadow:inset 0 0 0 1.3px var(--ec, var(--ink-faint)); color:var(--ink-soft); font-weight:600; border-radius:999px;}
+.cd-date.sun{color:var(--sun);} .cd-date.sat{color:var(--sat);}
+.cd-hol{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:99px; background:color-mix(in srgb, var(--sun) 14%, transparent); color:var(--sun); font-size:10.5px; font-weight:800;}
+.home-app .week-day.sun .wd-label, .home-app .week-day.hol .wd-label{color:var(--sun);}
+.home-app .week-day.sat .wd-label{color:var(--sat);}
 #cal-month-view{touch-action:pan-y;}
 .cal-weekdays-full{
   display:grid; grid-template-columns:repeat(7,1fr); text-align:center; padding:8px 4px;
@@ -770,7 +783,7 @@ body{
 .cal-weekdays-full span{font-size:10.5px; font-weight:800; color:var(--ink-faint);}
 .cal-week-row{
   display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:20px; column-gap:2px; row-gap:3px;
-  padding:5px 4px 8px; border-bottom:1px solid var(--line-soft); min-height:96px; position:relative;
+  padding:5px 4px 8px; border-bottom:1px solid var(--line-soft); min-height:119px; position:relative;
 }
 .cal-daynum{
   grid-row:1; font-size:11.5px; font-weight:700; color:var(--ink); padding:1px 0 0 5px;
@@ -1998,6 +2011,51 @@ body{
 
           function todayIndex(){ return Math.floor(nowMin / DAY_MIN); }
 
+          // 日本の祝日(アプリ内で計算するので、Googleカレンダーと連携していなくても表示できる)
+          const holidayCache = new Map();
+          function jpHolidayName(date){
+            const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+            const key = y * 10000 + m * 100 + d;
+            if(holidayCache.has(key)) return holidayCache.get(key);
+            const base = (yy, mm, dd) => {
+              const wd = new Date(yy, mm - 1, dd).getDay();
+              const nth = Math.ceil(dd / 7);
+              const eq = (c) => Math.floor(c + 0.242194 * (yy - 1980) - Math.floor((yy - 1980) / 4));
+              if(mm === 1 && dd === 1) return '元日';
+              if(mm === 1 && wd === 1 && nth === 2) return '成人の日';
+              if(mm === 2 && dd === 11) return '建国記念の日';
+              if(mm === 2 && dd === 23 && yy >= 2020) return '天皇誕生日';
+              if(mm === 3 && dd === eq(20.8431)) return '春分の日';
+              if(mm === 4 && dd === 29) return '昭和の日';
+              if(mm === 5 && dd === 3) return '憲法記念日';
+              if(mm === 5 && dd === 4) return 'みどりの日';
+              if(mm === 5 && dd === 5) return 'こどもの日';
+              if(mm === 7 && wd === 1 && nth === 3 && yy !== 2020 && yy !== 2021) return '海の日';
+              if(mm === 8 && dd === 11 && yy !== 2020 && yy !== 2021) return '山の日';
+              if(mm === 9 && wd === 1 && nth === 3) return '敬老の日';
+              if(mm === 9 && dd === eq(23.2488)) return '秋分の日';
+              if(mm === 10 && wd === 1 && nth === 2 && yy !== 2020 && yy !== 2021) return 'スポーツの日';
+              if(mm === 11 && dd === 3) return '文化の日';
+              if(mm === 11 && dd === 23) return '勤労感謝の日';
+              return null;
+            };
+            const at = (offset) => { const x = new Date(y, m - 1, d + offset); return [x.getFullYear(), x.getMonth() + 1, x.getDate(), x.getDay()]; };
+            let name = base(y, m, d);
+            if(!name && date.getDay() !== 0){
+              // 振替休日: 日曜の祝日から続く祝日の次の日
+              for(let k = 1; k < 7; k++){
+                const [yy, mm, dd, wd] = at(-k);
+                if(!base(yy, mm, dd)) break;
+                if(wd === 0){ name = '振替休日'; break; }
+              }
+              // 国民の休日: 祝日にはさまれた日
+              if(!name){ const p = at(-1), n = at(1); if(base(p[0], p[1], p[2]) && base(n[0], n[1], n[2])) name = '国民の休日'; }
+            }
+            holidayCache.set(key, name);
+            return name;
+          }
+          function holidayForDay(dayIndex){ const d = new Date(BASE_DATE); d.setDate(d.getDate() + dayIndex); return jpHolidayName(d); }
+
           function mondayOf(dayIndex){
             const d = new Date(BASE_DATE); d.setDate(d.getDate() + dayIndex);
             return dayIndex - ((d.getDay() + 6) % 7);
@@ -2010,8 +2068,9 @@ body{
               const d = new Date(BASE_DATE); d.setDate(d.getDate() + i);
               const el = document.createElement('button');
               el.type = 'button';
-              el.className = 'week-day';
-              el.setAttribute('aria-label', dateLabelForDay(i));
+              const hol = holidayForDay(i);
+              el.className = 'week-day' + (hol ? ' hol' : d.getDay() === 0 ? ' sun' : d.getDay() === 6 ? ' sat' : '');
+              el.setAttribute('aria-label', dateLabelForDay(i) + (hol ? `・${hol}` : ''));
               el.innerHTML = `<span class="wd-label">${WEEKDAYS[d.getDay()]}</span><span class="wd-num">${d.getDate()}</span><span class="wd-total"></span>`;
               el.addEventListener('click', () => { if(!stripSwiped){ switchToDay(i); emit('day'); } });
               weekStrip.appendChild(el);
@@ -4165,6 +4224,7 @@ body{
                 .map(t => ({ id:t.id, title:t.title, subject:t.subject, startMin:t.startMin, dur:t.dur, done:t.status === 'completed', review:!!t.isReview }));
             },
             renderExternalEvents(){ renderExternalEvents(); },
+            holidayForDay, jpHolidayName,
             reorderSubjects(names){
               const entries = Object.entries(SUBJECT_COLORS);
               const rest = entries.filter(([n]) => !names.includes(n));
@@ -4606,7 +4666,7 @@ body{
                 detail.innerHTML = `
                   <div class="cd-head">
                     <div>
-                      <p class="cd-date">${label(dayIndex)}${dayIndex === home.todayIndex() ? '・今日' : ''}</p>
+                      <p class="cd-date${home.holidayForDay(dayIndex) || dateOf(dayIndex).getDay() === 0 ? ' sun' : dateOf(dayIndex).getDay() === 6 ? ' sat' : ''}">${label(dayIndex)}${dayIndex === home.todayIndex() ? '・今日' : ''}${home.holidayForDay(dayIndex) ? `<span class="cd-hol">${escapeHtml(home.holidayForDay(dayIndex))}</span>` : ''}</p>
                       <p class="cd-total">${total ? fmtMin(total) : '0分'}<small>${isFuture ? '計測予定なし' : '勉強した時間'}</small></p>
                     </div>
                     <div class="cd-projects">${projects}</div>
@@ -4630,11 +4690,15 @@ body{
                 document.querySelectorAll('#cal-week-view .week-day-row').forEach(r => r.classList.toggle('selected', Number(r.dataset.day) === dayIndex));
               }
 
+              function googleEventsFor(dayIndex){
+                const g = window.StudySyncGoogle;
+                if(!g.connected || !g.syncOn) return [];
+                return g.events.filter(e => e.day === dayIndex && g.calendars[e.cal] && g.calendarsInfo[e.cal] && !/#holiday@/.test(e.cal))
+                  .sort((a, b) => (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || a.start - b.start);
+              }
               function googleEventsHtml(dayIndex){
                 const g = window.StudySyncGoogle;
-                if(!g.connected || !g.syncOn) return '';
-                const evs = g.events.filter(e => e.day === dayIndex && g.calendars[e.cal] && g.calendarsInfo[e.cal])
-                  .sort((a, b) => (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || a.start - b.start);
+                const evs = googleEventsFor(dayIndex);
                 if(!evs.length) return '';
                 const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
                 return `<p class="cd-section">Googleカレンダーの予定</p><ul class="cd-tasks">${evs.map(e => { const info = g.calendarsInfo[e.cal]; return `<li style="background:transparent; box-shadow:inset 0 0 0 1.5px ${info.color}"><span class="time">${e.allDay ? '終日' : `${hm(e.start)}–${hm(Math.min(e.start + e.dur, 1440))}`}</span><span class="ttl">${escapeHtml(e.title)}<span style="--sc:${info.color}">${escapeHtml(info.name)}</span></span><span class="cd-badge plan">予定</span></li>`; }).join('')}</ul>`;
@@ -4646,16 +4710,17 @@ body{
                 const gc = window.StudySyncCalendar;
                 const last = g.lastSync ? new Date(g.lastSync) : null;
                 document.getElementById('calSyncLabel').textContent = !g.connected ? 'Googleカレンダーと連携する'
-                  : gc && gc.error ? 'Googleカレンダー: 同期できませんでした'
-                  : gc && gc.status === 'syncing' ? 'Googleカレンダーと同期中…'
+                  : gc && gc.error ? 'Google同期できませんでした'
+                  : gc && gc.status === 'syncing' ? 'Googleと同期中…'
                   : !g.syncOn ? 'Googleカレンダーの表示はオフ'
-                  : last && !isNaN(last) ? `Googleカレンダーと同期済み・${hm(last)}` : 'Googleカレンダーと連携中';
+                  : last && !isNaN(last) ? `Google同期済み・${hm(last)}` : 'Googleカレンダーと連携中';
                 document.getElementById('calSyncPill').classList.toggle('off', !g.connected || !g.syncOn);
                 document.querySelectorAll('#cal-month-view .cal-bar.synced').forEach(b => {
                   const cal = b.classList.contains('holiday') ? 'holidays' : 'personal';
                   b.hidden = !(g.connected && g.syncOn && g.calendars[cal]);
                 });
-                render();
+                if(APP && typeof buildMonth === 'function' && document.querySelector('#cal-month-view .cal-full')) buildMonth();
+                else render();
               }
               document.getElementById('calSyncPill').addEventListener('click', () => {
                 document.querySelector('.stab[data-target="settings"]').click();
@@ -4692,12 +4757,13 @@ body{
               function buildMonth(){
                 const y = monthCursor.getFullYear(), m = monthCursor.getMonth();
                 const first = new Date(y, m, 1);
-                const start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+                const start = new Date(first); start.setDate(1 - first.getDay());
                 MONTH_GRID_START = start;
                 const last = new Date(y, m + 1, 0);
-                const rows = Math.ceil((((first.getDay() + 6) % 7) + last.getDate()) / 7);
+                const rows = Math.ceil((first.getDay() + last.getDate()) / 7);
                 const todayIdx = home.todayIndex();
-                let html = '<div class="cal-weekdays-full"><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span><span>日</span></div>';
+                const g = window.StudySyncGoogle;
+                let html = '<div class="cal-weekdays-full"><span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span></div>';
                 for(let r = 0; r < rows; r++){
                   let cells = '', bars = '';
                   const rowStartIdx = indexOf(new Date(start.getFullYear(), start.getMonth(), start.getDate() + r * 7));
@@ -4705,13 +4771,17 @@ body{
                     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + r * 7 + (c - 1));
                     const idx = indexOf(d);
                     const muted = d.getMonth() !== m ? ' muted' : '';
-                    cells += `<span class="cal-daynum${muted}${idx === todayIdx ? ' today' : ''}" style="grid-column:${c};">${d.getDate()}</span>`;
-                    const recs = home.dayRecords(idx).slice(0, 2);
-                    recs.forEach((t, i) => {
-                      bars += `<div class="cal-bar native" style="grid-column:${c} / ${c + 1}; grid-row:${i + 2}; background:color-mix(in srgb, ${t.color} 18%, transparent); color:var(--ink);">${escapeHtml(t.title)}</div>`;
-                    });
-                    const more = home.dayRecords(idx).length - recs.length;
-                    if(more > 0) bars += `<span class="cal-more" style="grid-column:${c} / ${c + 1}; grid-row:4;">+${more} 件</span>`;
+                    const hol = home.jpHolidayName(d);
+                    const tone = hol ? ' hol' : c === 1 ? ' sun' : c === 7 ? ' sat' : '';
+                    cells += `<span class="cal-daynum${muted}${tone}${idx === todayIdx ? ' today' : ''}" style="grid-column:${c};">${d.getDate()}</span>`;
+                    // 祝日 → Googleカレンダーの予定(終日が先) → タスク の順に3行まで
+                    const items = [];
+                    if(hol) items.push(`<div class="cal-bar hol-bar" style="grid-column:${c} / ${c + 1}; grid-row:ROW;">${escapeHtml(hol)}</div>`);
+                    googleEventsFor(idx).forEach(e => items.push(`<div class="cal-bar ev-bar" style="grid-column:${c} / ${c + 1}; grid-row:ROW; --ec:${g.calendarsInfo[e.cal].color};">${escapeHtml(e.title)}</div>`));
+                    home.dayRecords(idx).forEach(t => items.push(`<div class="cal-bar native" style="grid-column:${c} / ${c + 1}; grid-row:ROW; background:color-mix(in srgb, ${t.color} 18%, transparent); color:var(--ink);">${escapeHtml(t.title)}</div>`));
+                    const shown = items.length > 3 ? 2 : items.length;
+                    items.slice(0, shown).forEach((h, i) => { bars += h.replace('grid-row:ROW', `grid-row:${i + 2}`); });
+                    if(items.length > shown) bars += `<span class="cal-more" style="grid-column:${c} / ${c + 1}; grid-row:4;">+${items.length - shown} 件</span>`;
                   }
                   // 帯だけでなく、何のプロジェクトかも名前で表示する。同じ週に複数重なる場合は行をずらす
                   const weekPrograms = home.programs()
@@ -5557,7 +5627,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.11.1';
+            const APP_VERSION = '1.12.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6081,7 +6151,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
+                  <li><b>${APP_VERSION}</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
+                  <li><b>1.11.1</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
                   <li><b>1.11.0</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
                   <li><b>1.10.1</b><span>文字を全体に一段大きく(以前の標準は「小」に)、ホーム上部も文字の大きさの設定に対応、未設定が多いときはスクロールで表示(長押しでつまむ)、教科を3本線で並び替え</span></li>
                   <li><b>1.10.0</b><span>ウィジェットに教科の頭文字、新しいウィジェット3種類(次の予定・今日の進み具合・今週の勉強時間)、予定の開始・終了時刻に合わせて自動で更新</span></li>
