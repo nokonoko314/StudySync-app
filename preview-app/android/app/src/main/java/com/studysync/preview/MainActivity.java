@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
+        registerPlugin(WidgetBridgePlugin.class);
         super.onCreate(savedInstanceState);
         // 起動画面から画面が切り替わるときに、別の色が一瞬見えないよう背景色をそろえる(端末のライト/ダークに合わせる)
         int background = ContextCompat.getColor(this, R.color.splash_background);

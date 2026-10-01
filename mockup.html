@@ -1773,6 +1773,27 @@ body{
                 google:{ connected:g.connected, email:g.email, syncOn:g.syncOn, calendars:g.calendars, exportOn:g.exportOn, frequency:g.frequency },
               }));
             } catch(_){ /* 保存できない環境では何もしない */ }
+            syncWidget();
+          }
+          // ---- ホーム画面ウィジェット(アプリ版のみ)。今日と明日の予定を渡し、日付が変わってもアプリを開かずに切り替わるようにする ----
+          let lastWidgetSig = '';
+          function syncWidget(){
+            const WB = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+            if(!WB) return;
+            const today = Math.floor((Date.now() - BASE_DATE.getTime()) / 86400000);
+            const days = {};
+            for(let d = today; d <= today + 1; d++){
+              const date = new Date(BASE_DATE.getTime() + d * 86400000);
+              const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+              days[key] = scheduledTasks
+                .filter(t => Math.floor(t.startMin / DAY_MIN) === d)
+                .sort((a, b) => a.startMin - b.startMin)
+                .map(t => ({ s:t.startMin - d * DAY_MIN, d:t.dur, t:t.title, c:/^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#8892A2', r:t.isReview ? 1 : 0, x:t.status === 'completed' ? 1 : 0 }));
+            }
+            const data = JSON.stringify(days);
+            if(data === lastWidgetSig) return;
+            lastWidgetSig = data;
+            WB.update({ data }).catch(() => { lastWidgetSig = ''; });
           }
           // 初回起動(アカウント連携前)は、操作を試せる程度の見本だけを入れる。sample:true は「見本を削除」でまとめて消せる
           function loadSamples(){
@@ -5356,7 +5377,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.8.4';
+            const APP_VERSION = '1.9.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -5877,7 +5898,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>アプリアイコンを新デザインに(忘却曲線と復習のチェック)</span></li>
+                  <li><b>${APP_VERSION}</b><span>ホーム画面ウィジェット「今日の予定」(進み具合と次の予定3件、日付が変わると自動で切り替え)</span></li>
+                  <li><b>1.8.4</b><span>アプリアイコンを新デザインに(忘却曲線と復習のチェック)</span></li>
                   <li><b>1.8.3</b><span>新しいアプリアイコン(テーマアイコン対応)、起動画面、通知アイコン、ステータスバーの色をアプリのテーマに合わせる</span></li>
                   <li><b>1.8.2</b><span>教科の削除(使っているタスクは「その他」に移動、元に戻せる)</span></li>
                   <li><b>1.8.1</b><span>ログアウトすると、この端末のデータを消して初期状態に戻すように(クラウドには残る)</span></li>

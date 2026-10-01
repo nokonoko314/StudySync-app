@@ -4,4 +4,5 @@
     <string name="title_activity_main">StudySync</string>
     <string name="package_name">com.studysync.app</string>
     <string name="custom_url_scheme">com.studysync.app</string>
+    <string name="widget_description">今日の予定と進み具合を表示します</string>
 </resources>
