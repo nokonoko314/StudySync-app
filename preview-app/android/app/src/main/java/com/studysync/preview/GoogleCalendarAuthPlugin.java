@@ -52,9 +52,15 @@ public class GoogleCalendarAuthPlugin extends Plugin {
         }
         if (scopes.isEmpty()) { call.reject("権限の指定がありません", "BAD_SCOPES"); return; }
         boolean interactive = Boolean.TRUE.equals(call.getBoolean("interactive", false));
-        AuthorizationRequest.Builder builder = AuthorizationRequest.builder().setRequestedScopes(scopes);
+        // Googleログイン(@capacitor-firebase/authentication)で動いている形にそろえる:
+        // サーバー用のクライアントID(Web)を添え、アカウントはGoogleに選ばせる(指定すると 400 になる端末がある)
+        AuthorizationRequest.Builder builder = AuthorizationRequest.builder()
+            .setRequestedScopes(scopes)
+            .requestOfflineAccess(getContext().getString(R.string.default_web_client_id));
         String email = call.getString("email");
-        if (email != null && !email.isEmpty()) builder.setAccount(new Account(email, "com.google"));
+        if (Boolean.TRUE.equals(call.getBoolean("useAccount", false)) && email != null && !email.isEmpty()) {
+            builder.setAccount(new Account(email, "com.google"));
+        }
 
         Identity.getAuthorizationClient(getActivity()).authorize(builder.build())
             .addOnSuccessListener(result -> {

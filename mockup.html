@@ -5557,7 +5557,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.11.0';
+            const APP_VERSION = '1.11.1';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6081,7 +6081,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
+                  <li><b>${APP_VERSION}</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
+                  <li><b>1.11.0</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
                   <li><b>1.10.1</b><span>文字を全体に一段大きく(以前の標準は「小」に)、ホーム上部も文字の大きさの設定に対応、未設定が多いときはスクロールで表示(長押しでつまむ)、教科を3本線で並び替え</span></li>
                   <li><b>1.10.0</b><span>ウィジェットに教科の頭文字、新しいウィジェット3種類(次の予定・今日の進み具合・今週の勉強時間)、予定の開始・終了時刻に合わせて自動で更新</span></li>
                   <li><b>1.9.2</b><span>未設定のタスクをタップで編集・削除できるように(時間を指定すると時間軸へ)、削除などのお知らせはほかの場所に触れるとすぐ消えるように</span></li>
