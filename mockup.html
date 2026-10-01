@@ -5627,7 +5627,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.12.0';
+            const APP_VERSION = '1.12.1';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6151,7 +6151,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
+                  <li><b>${APP_VERSION}</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
+                  <li><b>1.12.0</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
                   <li><b>1.11.1</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
                   <li><b>1.11.0</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
                   <li><b>1.10.1</b><span>文字を全体に一段大きく(以前の標準は「小」に)、ホーム上部も文字の大きさの設定に対応、未設定が多いときはスクロールで表示(長押しでつまむ)、教科を3本線で並び替え</span></li>
@@ -6217,7 +6218,7 @@ body{
                   </div>
                   <p class="st-label">書き出し</p>
                   <div class="st-options">${sw('id="gcExport"', 'StudySyncの予定を書き出す', '時間軸に置いたタスクを、Googleカレンダーの「StudySync」カレンダーに追加します', !!g.exportOn)}</div>
-                  <p class="st-note">過去7日〜60日先の予定が対象です。アプリを開いたとき、戻ったとき、開いている間は15分ごとに同期します。書き出した予定はStudySyncで変更してください(Googleカレンダー側で変えても、次の同期で元に戻ります)。</p>
+                  <p class="st-note">過去7日〜60日先の予定が対象です。アプリを開いたとき・アプリに戻ったときに同期します(開いたままなら15分ごとにも)。書き出した予定はStudySyncで変更してください(Googleカレンダー側で変えても、次の同期で元に戻ります)。</p>
                   <button type="button" class="st-secondary danger" id="gcDisconnect">連携を解除</button>`;
                 gcalEl.querySelector('#gcSyncNow').addEventListener('click', () => GC.syncNow());
                 gcalEl.querySelector('#gcReconsent')?.addEventListener('click', () => GC.connect());
@@ -7587,12 +7588,15 @@ function undoAction(scopeId){
 
             // ---- いつ同期するか: 起動時、アプリに戻ったとき、開いている間は15分ごと。書き出しはタスクが変わったら少し待って反映 ----
             if(g.connected) loadCache();
+            // ホームを開いたときは、最新の予定で時間軸を描き直す
+            document.querySelector('.stab[data-target="home"]')?.addEventListener('click', () => home.renderExternalEvents());
             g.set({});
             setTimeout(() => sync(false), 1500);
             document.addEventListener('visibilitychange', () => {
               if(document.hidden || !g.connected) return;
+              // ほかのアプリ(Googleカレンダーなど)で予定を変えて戻ってきたら、すぐ反映する
               const last = g.lastSync ? Date.parse(g.lastSync) : 0;
-              if(Date.now() - last > 2 * 60000) sync(false);
+              if(Date.now() - last > 20000) sync(false);
             });
             setInterval(() => { if(!document.hidden) sync(false); }, 15 * 60000);
             let exportTimer = null;
