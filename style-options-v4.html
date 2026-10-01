@@ -1,0 +1,169 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — 参考サイト発想 10案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:680px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; max-width:1400px; margin:0 auto;}
+  .scard{border-radius:var(--card-radius,16px); overflow:hidden; box-shadow:var(--card-shadow,0 8px 22px rgba(0,0,0,.10)); background:var(--bg,#fff); position:relative;}
+  .scard .label{font-size:12.5px; font-weight:800; padding:11px 16px; background:var(--label-bg,#16151A); color:var(--label-color,#fff);}
+  .scard .label small{display:block; font-size:10px; font-weight:400; opacity:.75; margin-top:2px;}
+  .scard .in{padding:20px; position:relative; z-index:1;}
+  .scard .date{font-size:11px; color:var(--date-color,#666); letter-spacing:.04em; font-weight:700;}
+  .scard .headline{font-weight:800; font-size:22px; color:var(--head-color,#111); margin:7px 0 2px; letter-spacing:-.01em; line-height:1.25;}
+  .scard .clock{font-size:13px; color:var(--clock-color,#555); margin-top:2px; font-weight:600;}
+  .scard .row{display:flex; gap:7px; margin-top:14px; flex-wrap:wrap;}
+  .scard .pill{padding:6px 11px; border-radius:var(--pill-radius,99px); font-size:10.5px; font-weight:800; background:var(--pill-bg,#eee); color:var(--pill-color,#333); border:var(--pill-border,none);}
+  .scard .pill.accent{background:var(--pill-accent-bg,#333); color:var(--pill-accent-color,#fff);}
+  .scard .chips{display:flex; gap:6px; margin-top:16px; flex-wrap:wrap;}
+  .scard .chip{padding:7px 13px; border-radius:var(--chip-radius,99px); font-size:10.5px; font-weight:800; background:var(--chip-bg,#eee); color:var(--chip-color,#777); border:var(--chip-border,none);}
+  .scard .chip.active{background:var(--chip-active-bg,#111); color:var(--chip-active-color,#fff);}
+  .scard .task{margin-top:14px; background:var(--task-bg,#fff); border-radius:var(--task-radius,14px); padding:12px 14px; border:var(--task-border,none); box-shadow:var(--task-shadow,none);}
+  .scard .task b{font-size:12.5px; color:var(--task-color,#111); font-weight:800;}
+  .scard .task .meta{font-size:10.5px; color:var(--task-meta-color,#888); margin-top:4px; font-weight:600;}
+  .ring{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;}
+</style>
+
+<h1>StudySync — さらに10案（参考サイト発想）</h1>
+<p class="lead">Dribbbleの「productivity app」「study app」検索で見つけた構成傾向（マルチカラーのカテゴリ分け、チーム風ダーク台帳、円形達成率カード、カード重ねUIなど）を、StudySyncらしく再構成しました。作品の直接複製ではなく配色・レイアウト発想のみを参照しています。</p>
+
+<div class="grid">
+
+  <div class="scard" style="--bg:#F3EEFB; --date-color:#7C5CD6; --head-color:#2E2350; --clock-color:#7C5CD6; --pill-radius:10px; --chip-radius:10px; --card-radius:18px;">
+    <div class="label" style="--label-bg:#2E2350;">1. マルチカラー教科分類型<small>参考: カテゴリごとに色分けされたプランナーUI</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日のタスク</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="pill" style="background:#FFD966; color:#5C4500;">数学</span>
+        <span class="pill" style="background:#8FE3C0; color:#0F5C3E;">英語</span>
+        <span class="pill" style="background:#FFB4C6; color:#7A1E36;">化学</span>
+        <span class="pill" style="background:#B9A6FF; color:#3A2872;">物理</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#191622; --date-color:#8F86A8; --head-color:#fff; --clock-color:#B9A6FF; --pill-bg:#2A2438; --pill-color:#B9A6FF; --pill-accent-bg:#7C5CD6; --pill-accent-color:#fff; --chip-bg:#2A2438; --chip-color:#8F86A8; --chip-active-bg:#7C5CD6; --chip-active-color:#fff; --task-bg:#241F32; --task-color:#fff; --task-meta-color:#8F86A8; --card-radius:16px;">
+    <div class="label" style="--label-bg:#7C5CD6;">2. チーム台帳風ダーク<small>参考: サイドバー付きダークな業務ダッシュボード</small></div>
+    <div class="in">
+      <div class="date">8月20日(木) ・ ワークスペース</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#E9F7F0; --date-color:#2C8A5E; --head-color:#0F3D28; --clock-color:#2C8A5E; --pill-bg:#fff; --pill-color:#2C8A5E; --pill-accent-bg:#2C8A5E; --pill-accent-color:#fff; --chip-bg:#fff; --chip-color:#2C8A5E; --chip-active-bg:#0F3D28; --chip-active-color:#fff; --task-bg:#fff; --card-radius:20px;">
+    <div class="label" style="--label-bg:#0F3D28;">3. ミント実績カード型<small>参考: 大きな%数値を主役にしたクリーンな実績カード</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="row" style="margin-top:6px;"><span class="ring" style="background:conic-gradient(#2C8A5E 0 68%, rgba(44,138,94,.15) 0); color:#0F3D28;">68%</span></div>
+      <div class="headline" style="margin-top:10px;">今週の達成率 68%</div>
+      <div class="clock">連続学習 12日目</div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#FBF6EF; --date-color:#8A7A9C; --head-color:#2E2350; --clock-color:#8A7A9C; --card-radius:18px;">
+    <div class="label" style="--label-bg:#2E2350;">4. カード積層プランナー<small>参考: 少しずつずらして重なるカードで奥行きを出すUI</small></div>
+    <div class="in" style="padding-bottom:34px;">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日のタスク 3件</div>
+      <div style="position:relative; height:110px; margin-top:14px;">
+        <div style="position:absolute; top:16px; left:16px; right:0; background:#E9E2F7; border-radius:14px; height:70px;"></div>
+        <div style="position:absolute; top:8px; left:8px; right:8px; background:#D9CCF2; border-radius:14px; height:70px;"></div>
+        <div style="position:absolute; top:0; left:0; right:16px; background:#fff; border-radius:14px; height:70px; box-shadow:0 6px 16px rgba(46,35,80,.12); padding:10px 14px;">
+          <b style="font-size:12.5px; color:#2E2350;">積分の演習問題 第3章</b>
+          <div style="font-size:10.5px; color:#8A7A9C; margin-top:4px;">数学・あと1時間</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --card-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px #EFEFEF; --date-color:#999; --head-color:#111; --clock-color:#555; --card-radius:14px;">
+    <div class="label" style="--label-bg:#111;">5. タイムライン・アジェンダ型<small>参考: 左に時間軸、右にタスクを並べる予定表UI</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div style="margin-top:14px; display:flex; flex-direction:column; gap:0;">
+        <div style="display:flex; gap:10px;"><span style="width:38px; font-size:10.5px; color:#999; padding-top:2px;">14:00</span><div style="flex:1; border-left:2px solid #EEE; padding-left:10px; padding-bottom:14px;"><b style="font-size:12px;">積分の演習問題 第3章</b><div style="font-size:10px; color:#999; margin-top:2px;">数学・18:00まで</div></div></div>
+        <div style="display:flex; gap:10px;"><span style="width:38px; font-size:10.5px; color:#999; padding-top:2px;">20:00</span><div style="flex:1; border-left:2px solid #EEE; padding-left:10px;"><b style="font-size:12px;">英単語 Unit 12 暗記</b><div style="font-size:10px; color:#999; margin-top:2px;">英語・20:00まで</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#111; --date-color:#999; --card-radius:14px;">
+    <div class="label" style="--label-bg:#FFD54A; --label-color:#111;">6. カラーブロック教科型<small>参考: 教科=大きな色面ブロックで一目瞭然にする分類UI</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline" style="color:#fff;">今日のタスク</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;">
+        <div style="background:#FFD54A; border-radius:12px; padding:10px 12px;"><b style="font-size:11.5px; color:#3A2E00;">積分の演習</b><div style="font-size:9.5px; color:#5C4A00; margin-top:2px;">数学</div></div>
+        <div style="background:#7CE0C9; border-radius:12px; padding:10px 12px;"><b style="font-size:11.5px; color:#043D30;">英単語 U12</b><div style="font-size:9.5px; color:#0A5C48; margin-top:2px;">英語</div></div>
+        <div style="background:#FF9F8F; border-radius:12px; padding:10px 12px;"><b style="font-size:11.5px; color:#4A0F04;">化学レポート</b><div style="font-size:9.5px; color:#6E1E0C; margin-top:2px;">化学</div></div>
+        <div style="background:#B9A6FF; border-radius:12px; padding:10px 12px;"><b style="font-size:11.5px; color:#28125C;">力学まとめ</b><div style="font-size:9.5px; color:#3A2278; margin-top:2px;">物理</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F7F7F5; --card-shadow:0 1px 2px rgba(0,0,0,.04); --date-color:#9A9A94; --head-color:#1B1B18; --clock-color:#6B6B64; --pill-bg:#fff; --pill-border:1px solid #E6E6E0; --pill-color:#5A5A54; --pill-accent-bg:#1B1B18; --pill-accent-color:#fff; --chip-bg:transparent; --chip-border:1px solid #E6E6E0; --chip-color:#6B6B64; --chip-active-bg:#1B1B18; --chip-active-color:#fff; --task-bg:#fff; --task-border:1px solid #EDEDE8; --pill-radius:6px; --chip-radius:6px; --card-radius:10px;">
+    <div class="label" style="--label-bg:#1B1B18;">7. ニュートラルグレーSaaS<small>参考: 装飾を極限まで削ぎ落とした業務ツール系UI</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(160deg,#FFF3D6,#FFE1EC); --date-color:#B5793A; --head-color:#4A2E1E; --clock-color:#D0668C; --card-radius:20px;">
+    <div class="label" style="--label-bg:#4A2E1E;">8. インフォグラフィック混在型<small>参考: 大きな挿絵・図解とデータが同居する説明的UI</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:8px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#FFD98E"/><path d="M8 12l3 3 5-6" stroke="#4A2E1E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><div class="headline" style="margin:0;">今週68%達成</div><div class="clock">あと3タスクで目標クリア</div></div>
+      </div>
+      <div class="task" style="background:rgba(255,255,255,.6); margin-top:16px;"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#241F32; --date-color:#B9A6FF; --card-radius:20px;">
+    <div class="label" style="--label-bg:#B9A6FF; --label-color:#241F32;">9. サークル達成率フォーカス型<small>参考: 中央の円形プログレス1つに視線を集めるミニマル構成</small></div>
+    <div class="in" style="text-align:center;">
+      <div class="date">8月20日(木)</div>
+      <div style="width:120px; height:120px; border-radius:50%; margin:16px auto 8px; background:conic-gradient(#B9A6FF 0 68%, rgba(255,255,255,.08) 0); display:flex; align-items:center; justify-content:center;">
+        <div style="width:96px; height:96px; border-radius:50%; background:#241F32; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <span style="font-size:22px; font-weight:800; color:#fff;">68%</span>
+          <span style="font-size:9.5px; color:#8F86A8;">今週の達成</span>
+        </div>
+      </div>
+      <div class="clock" style="color:#8F86A8;">連続学習 12日目</div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --card-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px #EEF0F5; --date-color:#8B92A8; --head-color:#1E2440; --clock-color:#4C5EE8; --card-radius:16px;">
+    <div class="label" style="--label-bg:#1E2440;">10. カレンダーファースト型<small>参考: 週間カレンダーを最上部に大きく配置するスケジュール中心UI</small></div>
+    <div class="in">
+      <div class="date">2026年8月</div>
+      <div style="display:flex; justify-content:space-between; margin-top:10px;">
+        <div v-for="d" style="text-align:center;"><div style="font-size:9.5px; color:#8B92A8;">木</div><div style="width:28px; height:28px; border-radius:50%; background:#4C5EE8; color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; margin-top:4px;">20</div></div>
+        <div style="text-align:center;"><div style="font-size:9.5px; color:#8B92A8;">金</div><div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; margin-top:4px;">21</div></div>
+        <div style="text-align:center;"><div style="font-size:9.5px; color:#8B92A8;">土</div><div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; margin-top:4px;">22</div></div>
+        <div style="text-align:center;"><div style="font-size:9.5px; color:#8B92A8;">日</div><div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; margin-top:4px;">23</div></div>
+      </div>
+      <div class="task" style="margin-top:16px; --task-bg:#F7F8FC;"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+</div>

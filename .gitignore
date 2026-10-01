@@ -19,3 +19,7 @@ pnpm-debug.log*
 dist/
 dist-ssr/
 *.local
+
+# APK builds
+dist-apk/
+*.apk

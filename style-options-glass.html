@@ -1,0 +1,223 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — ガラス質(Glassmorphism)案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#EDE7DA; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:680px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; max-width:1200px; margin:0 auto;}
+
+  @keyframes floatIn{
+    from{opacity:0; transform:translateY(18px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  @keyframes drift{
+    0%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(18px,-14px) scale(1.08);}
+    100%{transform:translate(0,0) scale(1);}
+  }
+  @keyframes drift2{
+    0%{transform:translate(0,0) scale(1);}
+    50%{transform:translate(-16px,16px) scale(1.05);}
+    100%{transform:translate(0,0) scale(1);}
+  }
+  @keyframes shimmer{
+    0%{transform:translateX(-120%) skewX(-18deg);}
+    45%,100%{transform:translateX(220%) skewX(-18deg);}
+  }
+  @keyframes floatCard{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-6px);}
+  }
+
+  .card{
+    border-radius:26px; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.22); position:relative;
+    animation:floatIn .6s cubic-bezier(.2,.8,.2,1) both, floatCard 7s ease-in-out 1s infinite;
+  }
+  .card:nth-child(1){animation-delay:0s, 1s;}
+  .card:nth-child(2){animation-delay:.12s, 1.3s;}
+  .card:nth-child(3){animation-delay:.24s, 1.6s;}
+
+  /* ガラス板そのもの: 縁のハイライト+うっすら内側に光が回り込む質感 */
+  .card::after{
+    content:""; position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:26px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 40px rgba(255,255,255,.06);
+    -webkit-backdrop-filter:saturate(1.4); backdrop-filter:saturate(1.4);
+  }
+  .card h2{font-size:13px; margin:0; padding:12px 16px; color:#fff; display:flex; flex-direction:column; gap:2px; position:relative; z-index:2;}
+  .card h2 small{font-size:10.5px; font-weight:400; opacity:.85;}
+
+  /* 背景: グラデーション+ぼかし玉(ガラスが透ける対象を用意、ゆっくり漂わせて透過感を強調) */
+  .bg{position:absolute; inset:0; z-index:0; overflow:hidden;}
+  .blob{position:absolute; border-radius:50%; filter:blur(30px);}
+  .blob.a{animation:drift 9s ease-in-out infinite;}
+  .blob.b{animation:drift2 11s ease-in-out infinite;}
+
+  .in{padding:18px; position:relative; z-index:2;}
+  .date{font-size:11px; font-weight:700; letter-spacing:.04em;}
+  .headline{font-family:"Shippori Mincho",serif; font-weight:800; font-size:20px; margin:4px 0 12px;}
+  .week{display:flex; justify-content:space-between; margin-bottom:14px;}
+  .wd{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px;}
+  .wd .num{width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; transition:transform .2s ease;}
+
+  .chips{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip{
+    display:flex; align-items:center; gap:5px; border-radius:99px; padding:7px 11px; font-size:10.5px; font-weight:700;
+    -webkit-backdrop-filter:blur(28px) saturate(1.6); backdrop-filter:blur(28px) saturate(1.6);
+    position:relative; overflow:hidden; transition:transform .18s ease;
+  }
+  .chip:hover{transform:translateY(-1px) scale(1.03);}
+
+  .taskcard{
+    border-radius:18px; padding:12px 14px; margin-bottom:8px;
+    -webkit-backdrop-filter:blur(34px) saturate(1.6); backdrop-filter:blur(34px) saturate(1.6);
+    position:relative; overflow:hidden; transition:transform .2s ease;
+  }
+  .taskcard:hover{transform:translateY(-2px);}
+  .taskcard b{font-size:12px; display:block;}
+  .taskcard span{font-size:10px; display:block; margin-top:3px;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:4px; padding:7px 14px; border-radius:99px; font-size:10.5px; font-weight:800;
+    -webkit-backdrop-filter:blur(28px) saturate(1.6); backdrop-filter:blur(28px) saturate(1.6);
+    position:relative; overflow:hidden; cursor:pointer; transition:transform .15s ease;
+  }
+  .btn:hover{transform:scale(1.04);}
+  .btn:active{transform:scale(.97);}
+
+  /* ガラスに走る一筋の光(シマー)。チップ・タスクカード・ボタン全てに共通適用 */
+  .chip::before, .taskcard::before, .btn::before{
+    content:""; position:absolute; top:-40%; bottom:-40%; left:0; width:36%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+    animation:shimmer 4.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .taskcard::before{animation-delay:.6s;}
+  .btn::before{animation-delay:1.2s; animation-duration:3.5s;}
+  .s3 .chip::before, .s3 .taskcard::before, .s3 .btn::before{
+    background:linear-gradient(100deg, transparent, rgba(186,230,253,.4), transparent);
+  }
+
+  /* ---- ① ティール・グラス(ライト) ---- */
+  .s1{background:linear-gradient(160deg,#DFF7F1,#BEEAE0);}
+  .s1 .blob.a{width:220px; height:220px; left:-60px; top:-60px; background:#5EEAD4; opacity:.55;}
+  .s1 .blob.b{width:180px; height:180px; right:-50px; top:40px; background:#2DD4BF; opacity:.4;}
+  .s1 h2{background:rgba(13,148,136,.55); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);}
+  .s1 .date{color:#0F5C54;}
+  .s1 .headline{color:#0B3B36;}
+  .s1 .wd .num{color:#0B3B36;}
+  .s1 .wd.today .num{background:#0D9488; color:#fff;}
+  .s1 .chip{background:rgba(255,255,255,.5); color:#0F5C54; box-shadow:0 1px 2px rgba(13,148,136,.1), inset 0 0 0 1px rgba(255,255,255,.7);}
+  .s1 .chip.accent{background:rgba(13,148,136,.8); color:#fff;}
+  .s1 .taskcard{background:rgba(255,255,255,.55); box-shadow:0 6px 18px rgba(13,148,136,.12), inset 0 0 0 1px rgba(255,255,255,.7); border-left:3px solid rgba(13,148,136,.7);}
+  .s1 .taskcard b{color:#0B3B36;} .s1 .taskcard span{color:#3E7A72;}
+  .s1 .btn{background:rgba(13,148,136,.85); color:#fff;}
+
+  /* ---- ② ブルー・グラス(ライト、AI感を避けた柔らかいトーン) ---- */
+  .s2{background:linear-gradient(160deg,#E4EEFC,#CFE3FA);}
+  .s2 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#93C5FD; opacity:.5;}
+  .s2 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#60A5FA; opacity:.35;}
+  .s2 h2{background:rgba(59,130,246,.5); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);}
+  .s2 .date{color:#1E4FA0;}
+  .s2 .headline{color:#12264A;}
+  .s2 .wd .num{color:#12264A;}
+  .s2 .wd.today .num{background:#3B82F6; color:#fff;}
+  .s2 .chip{background:rgba(255,255,255,.5); color:#1E4FA0; box-shadow:0 1px 2px rgba(59,130,246,.1), inset 0 0 0 1px rgba(255,255,255,.7);}
+  .s2 .chip.accent{background:rgba(59,130,246,.75); color:#fff;}
+  .s2 .taskcard{background:rgba(255,255,255,.55); box-shadow:0 6px 18px rgba(59,130,246,.12), inset 0 0 0 1px rgba(255,255,255,.7); border-left:3px solid rgba(59,130,246,.7);}
+  .s2 .taskcard b{color:#12264A;} .s2 .taskcard span{color:#4E6C9E;}
+  .s2 .btn{background:rgba(59,130,246,.8); color:#fff;}
+
+  /* ---- ③ ダークグラス(アイスシアン) ---- */
+  .s3{background:linear-gradient(160deg,#12141C,#1B2030);}
+  .s3 .blob.a{width:240px; height:240px; left:-70px; top:-60px; background:#38BDF8; opacity:.25;}
+  .s3 .blob.b{width:200px; height:200px; right:-60px; top:80px; background:#818CF8; opacity:.2;}
+  .s3 h2{background:rgba(56,189,248,.18); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);}
+  .s3 .date{color:#7DD3FC;}
+  .s3 .headline{color:#F1F5F9;}
+  .s3 .wd .num{color:#94A3B8;}
+  .s3 .wd.today .num{background:#38BDF8; color:#0B0B10;}
+  .s3 .chip{background:rgba(255,255,255,.06); color:#BAE6FD; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}
+  .s3 .chip.accent{background:rgba(56,189,248,.28); color:#E0F7FF; box-shadow:inset 0 0 0 1px rgba(125,211,252,.4);}
+  .s3 .taskcard{background:rgba(255,255,255,.05); box-shadow:inset 0 0 0 1px rgba(255,255,255,.10); border-left:3px solid #38BDF8;}
+  .s3 .taskcard b{color:#F1F5F9;} .s3 .taskcard span{color:#94A3B8;}
+  .s3 .btn{background:rgba(56,189,248,.85); color:#0B0B10;}
+</style>
+
+<h1>StudySync — ガラス質(Glassmorphism)案</h1>
+<p class="lead">ブラーを強め、背後の色玉がゆっくり漂う・チップやボタンに光が一筋流れる（シマー）・カード全体がふわっと浮遊する、の3つのアニメーションを追加してよりガラスらしくしました。実際に数秒眺めてみてください。</p>
+
+<div class="grid">
+
+  <div class="card s1">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>① ティール・グラス<small>すりガラスの上に淡いティールが透ける、柔らかく上品な印象</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s2">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>② ブルー・グラス<small>同じ青でも、すりガラス越しだと「AIツール感」が薄れ柔らかくなる</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s3">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>③ ダーク・グラス(アイスシアン)<small>漆黒の上に薄いガラス板を重ねたような、硬派で高級感のある質感</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+</div>

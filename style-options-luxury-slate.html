@@ -1,0 +1,201 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — 高級感スレートグラス 5案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:700px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; max-width:1200px; margin:0 auto;}
+  .card{border-radius:20px; overflow:hidden; box-shadow:0 20px 44px rgba(0,0,0,.28); position:relative;}
+  .card h2{font-size:13px; margin:0; padding:13px 17px; color:#fff; display:flex; flex-direction:column; gap:2px;}
+  .card h2 small{font-size:10.5px; font-weight:400; opacity:.75;}
+  .bg{position:absolute; inset:0; z-index:0;}
+  .blob{position:absolute; border-radius:50%; filter:blur(40px);}
+  .in{padding:20px; position:relative; z-index:2;}
+  .date{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;}
+  .headline{font-family:"Shippori Mincho",serif; font-weight:700; font-size:21px; margin:6px 0 14px;}
+  .hairline{height:1px; margin:0 0 14px; opacity:.5;}
+  .week{display:flex; justify-content:space-between; margin-bottom:16px;}
+  .wd{display:flex; flex-direction:column; align-items:center; gap:5px; font-size:9.5px;}
+  .wd .num{width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;}
+  .chips{display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap;}
+  .chip{
+    display:flex; align-items:center; gap:5px; border-radius:99px; padding:7px 12px; font-size:10px; font-weight:700; letter-spacing:.01em;
+    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); transition:transform .18s ease;
+  }
+  .chip:hover{transform:translateY(-1px);}
+  .taskcard{
+    border-radius:14px; padding:13px 15px; margin-bottom:10px;
+    -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); transition:transform .18s ease;
+  }
+  .taskcard:hover{transform:translateY(-1px);}
+  .taskcard b{font-size:12.5px; display:block; font-weight:700;}
+  .taskcard span{font-size:10px; display:block; margin-top:4px; letter-spacing:.01em;}
+  .btn{
+    display:inline-flex; align-items:center; gap:4px; padding:8px 16px; border-radius:2px; font-size:10px; font-weight:700; letter-spacing:.04em;
+    cursor:pointer; transition:transform .15s ease, opacity .15s ease; text-transform:uppercase;
+  }
+  .btn:hover{opacity:.85;} .btn:active{transform:scale(.97);}
+
+  /* ---- ① スレート×ゴールド(王道の高級感) ---- */
+  .s1{background:linear-gradient(165deg,#2A2E38,#1B1E26);}
+  .s1 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#C9A45C; opacity:.14;}
+  .s1 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#8895AC; opacity:.12;}
+  .s1 h2{background:rgba(201,164,92,.16); border-bottom:1px solid rgba(201,164,92,.2);}
+  .s1 .date{color:#C9A45C;} .s1 .headline{color:#F1EFE9;} .s1 .hairline{background:#C9A45C;}
+  .s1 .wd .num{color:#8895AC;} .s1 .wd.today .num{background:#C9A45C; color:#1B1E26;}
+  .s1 .chip{background:rgba(255,255,255,.05); color:#D9CBA8; box-shadow:inset 0 0 0 1px rgba(201,164,92,.28);}
+  .s1 .chip.accent{background:rgba(201,164,92,.85); color:#1B1E26;}
+  .s1 .taskcard{background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(201,164,92,.2); border-left:2px solid #C9A45C;}
+  .s1 .taskcard b{color:#F1EFE9;} .s1 .taskcard span{color:#8895AC;}
+  .s1 .btn{background:#C9A45C; color:#1B1E26;}
+
+  /* ---- ② スレート×シルバー(モノクロで冷たい高級感) ---- */
+  .s2{background:linear-gradient(165deg,#2E323B,#1C1F26);}
+  .s2 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#C7CDD9; opacity:.14;}
+  .s2 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#5A6474; opacity:.16;}
+  .s2 h2{background:rgba(199,205,217,.12); border-bottom:1px solid rgba(199,205,217,.18);}
+  .s2 .date{color:#C7CDD9;} .s2 .headline{color:#F4F6FA;} .s2 .hairline{background:#C7CDD9;}
+  .s2 .wd .num{color:#8892A2;} .s2 .wd.today .num{background:#C7CDD9; color:#1C1F26;}
+  .s2 .chip{background:rgba(255,255,255,.05); color:#D6DAE2; box-shadow:inset 0 0 0 1px rgba(199,205,217,.24);}
+  .s2 .chip.accent{background:rgba(199,205,217,.9); color:#1C1F26;}
+  .s2 .taskcard{background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(199,205,217,.18); border-left:2px solid #C7CDD9;}
+  .s2 .taskcard b{color:#F4F6FA;} .s2 .taskcard span{color:#8892A2;}
+  .s2 .btn{background:#C7CDD9; color:#1C1F26;}
+
+  /* ---- ③ ディープネイビー×ブロンズ ---- */
+  .s3{background:linear-gradient(165deg,#1A2438,#111726);}
+  .s3 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#B87A4E; opacity:.16;}
+  .s3 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#3E5C8A; opacity:.2;}
+  .s3 h2{background:rgba(184,122,78,.16); border-bottom:1px solid rgba(184,122,78,.22);}
+  .s3 .date{color:#D8A574;} .s3 .headline{color:#F1F0EC;} .s3 .hairline{background:#B87A4E;}
+  .s3 .wd .num{color:#7A8CB0;} .s3 .wd.today .num{background:#B87A4E; color:#111726;}
+  .s3 .chip{background:rgba(255,255,255,.05); color:#E0C4A8; box-shadow:inset 0 0 0 1px rgba(184,122,78,.28);}
+  .s3 .chip.accent{background:rgba(184,122,78,.85); color:#111726;}
+  .s3 .taskcard{background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(184,122,78,.2); border-left:2px solid #B87A4E;}
+  .s3 .taskcard b{color:#F1F0EC;} .s3 .taskcard span{color:#7A8CB0;}
+  .s3 .btn{background:#B87A4E; color:#111726;}
+
+  /* ---- ④ チャコール×ローズゴールド ---- */
+  .s4{background:linear-gradient(165deg,#2B262A,#1C1919);}
+  .s4 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#D9A38F; opacity:.16;}
+  .s4 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#8895AC; opacity:.10;}
+  .s4 h2{background:rgba(217,163,143,.16); border-bottom:1px solid rgba(217,163,143,.22);}
+  .s4 .date{color:#E0B3A0;} .s4 .headline{color:#F3EDEA;} .s4 .hairline{background:#D9A38F;}
+  .s4 .wd .num{color:#9C8E8A;} .s4 .wd.today .num{background:#D9A38F; color:#1C1919;}
+  .s4 .chip{background:rgba(255,255,255,.05); color:#E8CFC4; box-shadow:inset 0 0 0 1px rgba(217,163,143,.28);}
+  .s4 .chip.accent{background:rgba(217,163,143,.85); color:#1C1919;}
+  .s4 .taskcard{background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(217,163,143,.2); border-left:2px solid #D9A38F;}
+  .s4 .taskcard b{color:#F3EDEA;} .s4 .taskcard span{color:#9C8E8A;}
+  .s4 .btn{background:#D9A38F; color:#1C1919;}
+
+  /* ---- ⑤ インクブルーブラック×パール ---- */
+  .s5{background:linear-gradient(165deg,#161A22,#0D1016);}
+  .s5 .blob.a{width:220px; height:220px; left:-60px; top:-50px; background:#E8E6E0; opacity:.08;}
+  .s5 .blob.b{width:180px; height:180px; right:-50px; top:60px; background:#3E4C68; opacity:.2;}
+  .s5 h2{background:rgba(232,230,224,.08); border-bottom:1px solid rgba(232,230,224,.14);}
+  .s5 .date{color:#B9C2D4;} .s5 .headline{color:#F5F4F0;} .s5 .hairline{background:#E8E6E0;}
+  .s5 .wd .num{color:#6B7690;} .s5 .wd.today .num{background:#E8E6E0; color:#0D1016;}
+  .s5 .chip{background:rgba(255,255,255,.04); color:#D8D6CE; box-shadow:inset 0 0 0 1px rgba(232,230,224,.16);}
+  .s5 .chip.accent{background:rgba(232,230,224,.9); color:#0D1016;}
+  .s5 .taskcard{background:rgba(255,255,255,.03); box-shadow:inset 0 0 0 1px rgba(232,230,224,.12); border-left:2px solid #E8E6E0;}
+  .s5 .taskcard b{color:#F5F4F0;} .s5 .taskcard span{color:#6B7690;}
+  .s5 .btn{background:#E8E6E0; color:#0D1016;}
+</style>
+
+<h1>StudySync — 高級感スレートグラス 5案</h1>
+<p class="lead">②のスレートブルーを軸に、彩度を落として深みを出し、メタリックな差し色（ゴールド・シルバー・ブロンズなど）を添えて高級感を強めました。見出しは明朝体、区切り線・角の取れすぎない角丸など細部も上品さ寄りに調整しています。</p>
+
+<div class="grid">
+  <div class="card s1">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>① スレート×ゴールド<small>王道の高級配色。差し色にシャンパンゴールド</small></h2>
+    <div class="in">
+      <div class="date">Aug 20 · Thursday</div>
+      <div class="headline">今日の予定</div>
+      <div class="hairline"></div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div><div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div><div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips"><span class="chip accent">今週 68%</span><span class="chip">12日連続</span><span class="chip">数学</span></div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s2">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>② スレート×シルバー<small>モノクロで統一した冷たく知的な高級感</small></h2>
+    <div class="in">
+      <div class="date">Aug 20 · Thursday</div>
+      <div class="headline">今日の予定</div>
+      <div class="hairline"></div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div><div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div><div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips"><span class="chip accent">今週 68%</span><span class="chip">12日連続</span><span class="chip">数学</span></div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s3">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>③ ディープネイビー×ブロンズ<small>紺を深くし、ブロンズを差し色に。落ち着いた大人の高級感</small></h2>
+    <div class="in">
+      <div class="date">Aug 20 · Thursday</div>
+      <div class="headline">今日の予定</div>
+      <div class="hairline"></div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div><div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div><div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips"><span class="chip accent">今週 68%</span><span class="chip">12日連続</span><span class="chip">数学</span></div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s4">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>④ チャコール×ローズゴールド<small>温かみのある高級感。柔らかさも欲しい場合に</small></h2>
+    <div class="in">
+      <div class="date">Aug 20 · Thursday</div>
+      <div class="headline">今日の予定</div>
+      <div class="hairline"></div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div><div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div><div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips"><span class="chip accent">今週 68%</span><span class="chip">12日連続</span><span class="chip">数学</span></div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s5">
+    <div class="bg"><span class="blob a"></span><span class="blob b"></span></div>
+    <h2>⑤ インクブルーブラック×パール<small>最もミニマルで編集誌のような静かな高級感</small></h2>
+    <div class="in">
+      <div class="date">Aug 20 · Thursday</div>
+      <div class="headline">今日の予定</div>
+      <div class="hairline"></div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div><div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div><div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips"><span class="chip accent">今週 68%</span><span class="chip">12日連続</span><span class="chip">数学</span></div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+</div>

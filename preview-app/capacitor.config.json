@@ -1,0 +1,15 @@
+{
+  "appId": "com.studysync.app",
+  "appName": "StudySync",
+  "webDir": "www",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notify",
+      "iconColor": "#2A9BC0"
+    }
+  }
+}

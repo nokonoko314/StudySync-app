@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 起動画面とアプリの背景色(アプリの背景色と同じ) -->
+    <color name="splash_background">#FEFCF8</color>
+    <color name="brand">#222836</color>
+</resources>

@@ -1,0 +1,216 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — スタイル案 v3(20案)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800;900&family=Klee+One:wght@600&family=Reggae+One&family=DotGothic16&family=Kosugi+Maru&family=Yomogi&family=Hachi+Maru+Pop&family=Yuji+Syuku&family=Space+Grotesk:wght@500;700&family=Zen+Old+Mincho:wght@700&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 6px; max-width:640px; margin-left:auto; margin-right:auto;}
+  p.note{text-align:center; color:#9c9990; font-size:11.5px; margin:0 0 32px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; max-width:1440px; margin:0 auto;}
+  .scard{border-radius:var(--card-radius,16px); overflow:hidden; box-shadow:var(--card-shadow,0 8px 22px rgba(0,0,0,.10)); background:var(--bg,#fff); position:relative;}
+  .scard .label{font-size:12.5px; font-weight:800; padding:11px 16px; background:var(--label-bg,#16151A); color:var(--label-color,#fff); display:flex; justify-content:space-between; align-items:center;}
+  .scard .label small{display:block; font-size:10px; font-weight:400; opacity:.7; margin-top:2px;}
+  .scard .in{padding:18px 18px 20px; position:relative; z-index:1;}
+  .scard .date{font-size:11px; color:var(--date-color,#666); letter-spacing:.04em; font-weight:var(--date-weight,700); text-transform:var(--date-transform,none);}
+  .scard .headline{font-family:var(--font-head,inherit); font-weight:var(--head-weight,800); font-size:var(--head-size,23px); color:var(--head-color,#111); margin:7px 0 2px; letter-spacing:var(--head-ls,-0.01em); line-height:1.25;}
+  .scard .clock{font-family:var(--font-clock,inherit); font-size:13px; color:var(--clock-color,#555); margin-top:2px; font-weight:var(--clock-weight,600);}
+  .scard .row{display:flex; gap:6px; margin-top:13px; flex-wrap:wrap;}
+  .scard .pill{padding:6px 10px; border-radius:var(--pill-radius,99px); font-size:10px; font-weight:800; background:var(--pill-bg,#eee); color:var(--pill-color,#333); border:var(--pill-border,none);}
+  .scard .pill.accent{background:var(--pill-accent-bg,#333); color:var(--pill-accent-color,#fff);}
+  .scard .chips{display:flex; gap:6px; margin-top:14px;}
+  .scard .chip{padding:7px 12px; border-radius:var(--chip-radius,99px); font-size:10px; font-weight:800; background:var(--chip-bg,#eee); color:var(--chip-color,#777); border:var(--chip-border,none);}
+  .scard .chip.active{background:var(--chip-active-bg,#111); color:var(--chip-active-color,#fff);}
+  .scard .task{margin-top:14px; background:var(--task-bg,#fff); border-radius:var(--task-radius,14px); padding:11px 13px; border:var(--task-border,none); box-shadow:var(--task-shadow,none);}
+  .scard .task b{font-size:12px; color:var(--task-color,#111); font-weight:800;}
+  .scard .task .meta{font-size:10px; color:var(--task-meta-color,#888); margin-top:4px; font-weight:600;}
+</style>
+
+<h1>StudySync — スタイル案 v3（20案）</h1>
+<p class="lead">①note風エディトリアルはそのまま残し、まったく違う世界観を20個追加しました。気になったものを番号で教えてください。組み合わせ（例:「⑦の色味＋⑫のタイポ」）もOKです。</p>
+<p class="note">※①は前回の style-options-v2.html を参照してください</p>
+
+<div class="grid">
+
+  <div class="scard" style="--bg:#F7F8FA; --card-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px #E7E9EC; --date-color:#6B7280; --head-color:#111827; --clock-color:#6B7280; --pill-bg:#EEF2F6; --pill-color:#374151; --pill-accent-bg:#2563EB; --pill-accent-color:#fff; --chip-bg:#EEF2F6; --chip-color:#6B7280; --chip-active-bg:#111827; --chip-active-color:#fff; --task-bg:#fff; --task-border:1px solid #E7E9EC; --task-radius:10px; --pill-radius:6px; --chip-radius:6px; --card-radius:12px;">
+    <div class="label" style="--label-bg:#111827;">② モダンSaaS<small>Notion/Linear風・機能美・信頼感</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#0B0E17; --date-color:#5FF6E4; --head-color:#fff; --clock-color:#FF3D9A; --pill-bg:rgba(95,246,228,.12); --pill-color:#5FF6E4; --pill-border:1px solid rgba(95,246,228,.4); --pill-accent-bg:#FF3D9A; --pill-accent-color:#fff; --chip-bg:rgba(255,255,255,.06); --chip-color:#8892B0; --chip-active-bg:#5FF6E4; --chip-active-color:#0B0E17; --task-bg:rgba(255,255,255,.04); --task-border:1px solid rgba(95,246,228,.25); --task-color:#fff; --task-meta-color:#8892B0; --card-radius:10px;">
+    <div class="label" style="--label-bg:#5FF6E4; --label-color:#0B0E17;">③ サイバーパンク/ネオン<small>暗闇に光るネオンとグリッド</small></div>
+    <div class="in"><div class="date">08.20 (THU)</div><div class="headline" style="text-shadow:0 0 12px rgba(95,246,228,.6)">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(180deg,#2E1A47 0%,#7A2F6E 50%,#E8654A 100%); --date-color:rgba(255,255,255,.75); --head-color:#fff; --clock-color:#FFD98E; --pill-bg:rgba(255,255,255,.18); --pill-color:#fff; --pill-accent-bg:#FFD98E; --pill-accent-color:#3A2000; --chip-bg:rgba(255,255,255,.18); --chip-color:#fff; --chip-active-bg:#fff; --chip-active-color:#7A2F6E; --task-bg:rgba(255,255,255,.14); --task-color:#fff; --task-meta-color:rgba(255,255,255,.7); --card-radius:14px;">
+    <div class="label" style="--label-bg:#1A0F2E;">④ レトロシンセウェイブ<small>80年代・夕焼けグラデーション</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline" style="letter-spacing:.02em;">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#FBF3E3; --date-color:#B5652E; --head-color:#3E2A1E; --clock-color:#2C6E6B; --pill-bg:#EFDDB8; --pill-color:#5C4326; --pill-accent-bg:#D95F3B; --pill-accent-color:#fff; --chip-bg:#EFDDB8; --chip-color:#5C4326; --chip-active-bg:#2C6E6B; --chip-active-color:#fff; --task-bg:#fff; --task-border:2px solid #3E2A1E; --card-radius:4px; --pill-radius:2px; --chip-radius:2px;">
+    <div class="label" style="--label-bg:#3E2A1E;">⑤ ミッドセンチュリー<small>マスタード×テラコッタの昭和喫茶感</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#FAFAF9; --card-shadow:0 1px 2px rgba(0,0,0,.05); --date-color:#94A0A8; --head-color:#2B3238; --clock-color:#4C7C8C; --pill-bg:#EEF3F1; --pill-color:#3E4C4A; --pill-accent-bg:#4C7C8C; --pill-accent-color:#fff; --chip-bg:transparent; --chip-border:1px solid #D8DEDA; --chip-color:#5C6A66; --chip-active-bg:#2B3238; --chip-active-color:#fff; --task-bg:#fff; --task-border:1px solid #EAEEEC; --card-radius:8px; --pill-radius:4px; --chip-radius:4px;">
+    <div class="label" style="--label-bg:#2B3238;">⑥ 北欧ミニマル<small>Scandi・余白と細線で静かに</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#FFFDF7; --font-head:'Klee One',sans-serif; --date-color:#8A8370; --head-color:#3A3630; --clock-color:#5C6E4F; --pill-bg:#fff; --pill-border:1.5px dashed #3A3630; --pill-color:#3A3630; --pill-accent-bg:#5C6E4F; --pill-accent-color:#fff; --chip-bg:#fff; --chip-border:1.5px dashed #3A3630; --chip-color:#3A3630; --chip-active-bg:#3A3630; --chip-active-color:#fff; --task-bg:#fff; --task-border:1.5px dashed #3A3630; --card-radius:14px;">
+    <div class="label" style="--label-bg:#3A3630;">⑦ 手書きスケッチ<small>ノートの落書きのような温かみ</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:radial-gradient(circle at 20% 15%,rgba(255,255,255,.9) 0 1px,transparent 1px),radial-gradient(circle at 60% 40%,rgba(255,255,255,.7) 0 1px,transparent 1px),radial-gradient(circle at 85% 75%,rgba(255,255,255,.8) 0 1.5px,transparent 1.5px),radial-gradient(circle at 40% 85%,rgba(255,255,255,.6) 0 1px,transparent 1px),linear-gradient(160deg,#0A0F2E,#1B1246 60%,#3A1B5C); background-size:100px 100px,140px 140px,160px 160px,120px 120px,100% 100%; --date-color:#B9AEEA; --head-color:#fff; --clock-color:#8FE3D0; --pill-bg:rgba(255,255,255,.12); --pill-color:#fff; --pill-accent-bg:linear-gradient(135deg,#8FE3D0,#B9AEEA); --pill-accent-color:#1B1246; --chip-bg:rgba(255,255,255,.1); --chip-color:#B9AEEA; --chip-active-bg:#fff; --chip-active-color:#1B1246; --task-bg:rgba(255,255,255,.08); --task-color:#fff; --task-meta-color:#B9AEEA; --card-radius:16px;">
+    <div class="label" style="--label-bg:#000;">⑧ 宇宙銀河<small>満点の星空と幻想的な光</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F1E9DD; --date-color:#8A6A4C; --head-color:#4A3826; --clock-color:#6E7F4E; --pill-bg:#fff; --pill-color:#6E5A42; --pill-accent-bg:#B5602E; --pill-accent-color:#fff; --chip-bg:#fff; --chip-color:#6E5A42; --chip-active-bg:#6E7F4E; --chip-active-color:#fff; --task-bg:#fff; --task-radius:22px; --pill-radius:20px; --chip-radius:20px; --card-radius:24px;">
+    <div class="label" style="--label-bg:#4A3826;">⑨ アースオーガニック<small>土・木・葉の落ち着いた自然色</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#12141C; --date-color:#8892A6; --head-color:#fff; --clock-color:#7CE0FF; --pill-bg:rgba(124,224,255,.1); --pill-color:#7CE0FF; --pill-border:1px solid rgba(124,224,255,.35); --pill-accent-bg:rgba(124,224,255,.9); --pill-accent-color:#0A0E14; --chip-bg:rgba(255,255,255,.06); --pill-radius:8px; --chip-radius:8px; --chip-color:#8892A6; --chip-active-bg:rgba(124,224,255,.9); --chip-active-color:#0A0E14; --task-bg:rgba(255,255,255,.05); --task-border:1px solid rgba(124,224,255,.2); --task-color:#fff; --task-meta-color:#8892A6; --card-radius:16px;">
+    <div class="label" style="--label-bg:#7CE0FF; --label-color:#0A0E14;">⑩ ネオングラスダッシュボード<small>ダーク×シアンの近未来UI</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:radial-gradient(circle,#FFDE59 1.5px,transparent 1.5px) 0 0/10px 10px,#FFE94A; --font-head:'Reggae One',sans-serif; --date-color:#111; --head-color:#111; --clock-color:#D8285C; --pill-bg:#fff; --pill-border:2.5px solid #111; --pill-color:#111; --pill-accent-bg:#D8285C; --pill-accent-color:#fff; --chip-bg:#fff; --chip-border:2.5px solid #111; --chip-color:#111; --chip-active-bg:#3D6BFF; --chip-active-color:#fff; --task-bg:#fff; --task-border:2.5px solid #111; --task-shadow:4px 4px 0 #111; --card-radius:10px; --pill-radius:8px; --chip-radius:8px;">
+    <div class="label" style="--label-bg:#111;">⑪ コミック/ポップアート<small>ハーフトーンドット×極太アウトライン</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間!!</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F4EEDD; --font-head:'Yuji Syuku',serif; --date-color:#8B5E3C; --head-color:#4A3419; --clock-color:#7A6A46; --pill-bg:#fff; --pill-border:1px dashed #8B5E3C; --pill-color:#7A6A46; --pill-accent-bg:#8B5E3C; --pill-accent-color:#fff; --chip-bg:#fff; --chip-border:1px dashed #8B5E3C; --chip-color:#7A6A46; --chip-active-bg:#4A3419; --chip-active-color:#F4EEDD; --task-bg:#fff; --task-border:1px dashed #8B5E3C; --card-radius:2px;">
+    <div class="label" style="--label-bg:#4A3419;">⑫ ヴィンテージ切手<small>セピア色・ミミ付き枠の郵便感</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --head-size:34px; --head-weight:900; --head-ls:-0.03em; --date-color:#B0B0B0; --head-color:#0A0A0A; --clock-color:#0A0A0A; --pill-bg:#0A0A0A; --pill-color:#fff; --pill-accent-bg:#0A0A0A; --pill-accent-color:#fff; --chip-bg:transparent; --chip-color:#B0B0B0; --chip-active-bg:transparent; --chip-active-color:#0A0A0A; --task-bg:#fff; --task-border:1px solid #eee; --pill-radius:0; --chip-radius:0; --card-radius:0;">
+    <div class="label" style="--label-bg:#0A0A0A;">⑬ 巨大タイポ ミニマル<small>文字そのものをデザインにする</small></div>
+    <div class="in"><div class="date">AUG 20 THU</div><div class="headline">数学</div><div class="clock">14:32〜 の時間</div>
+      <div class="row"><span class="pill accent">68%</span><span class="pill">12日</span></div>
+      <div class="chips"><span class="chip active" style="text-decoration:underline;">すべて</span><span class="chip">締切順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#EFF3E6; --date-color:#5C7A3E; --head-color:#2E4020; --clock-color:#7A8F5E; --pill-bg:#DCE8C8; --pill-color:#3E5A26; --pill-accent-bg:#5C7A3E; --pill-accent-color:#fff; --chip-bg:#DCE8C8; --chip-color:#3E5A26; --chip-active-bg:#2E4020; --chip-active-color:#fff; --task-bg:#fff; --task-radius:18px; --pill-radius:16px; --chip-radius:16px; --card-radius:20px;">
+    <div class="label" style="--label-bg:#2E4020;">⑭ ボタニカル<small>植物・葉のやさしいグリーン</small></div>
+    <div class="in"><div class="date">🌿 8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#010402; --font-head:'DotGothic16',monospace; --font-clock:'DotGothic16',monospace; --date-color:#00FF6A; --head-color:#00FF6A; --clock-color:#00FF6A; --pill-bg:#001B0B; --pill-color:#00FF6A; --pill-border:1px solid #00FF6A; --pill-accent-bg:#00FF6A; --pill-accent-color:#010402; --chip-bg:#001B0B; --chip-color:#00FF6A; --chip-border:1px solid #00FF6A; --chip-active-bg:#00FF6A; --chip-active-color:#010402; --task-bg:#001B0B; --task-border:1px solid #00FF6A; --task-color:#00FF6A; --task-meta-color:#0A8F44; --pill-radius:3px; --chip-radius:3px; --card-radius:4px;">
+    <div class="label" style="--label-bg:#00FF6A; --label-color:#010402;">⑮ ターミナル/テック<small>黒画面に光るグリーンの等幅文字</small></div>
+    <div class="in"><div class="date">&gt; 2026-08-20_thu</div><div class="headline">$ 数学の時間_</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">68% 今週</span><span class="pill">12日連続</span><span class="pill">#数学</span></div>
+      <div class="chips"><span class="chip active">all</span><span class="chip">due_soon</span><span class="chip">done</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(160deg,#FFE1EC,#FFF3D6); --font-head:'Hachi Maru Pop',sans-serif; --date-color:#E0668C; --head-color:#6B4A3A; --clock-color:#E0668C; --pill-bg:#fff; --pill-color:#E0668C; --pill-accent-bg:linear-gradient(135deg,#FF8FB3,#FFC978); --pill-accent-color:#5C2A3D; --chip-bg:#fff; --chip-color:#E0668C; --chip-active-bg:#FF8FB3; --chip-active-color:#fff; --task-bg:#fff; --task-radius:22px; --pill-radius:20px; --chip-radius:20px; --card-radius:26px; --task-shadow:0 6px 14px rgba(255,143,179,.35);">
+    <div class="label" style="--label-bg:#FF8FB3;">⑯ キャンディ/グミ<small>つやつや3D風のポップな甘さ</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:radial-gradient(ellipse at 15% 20%,rgba(160,200,230,.55),transparent 55%),radial-gradient(ellipse at 80% 15%,rgba(230,190,210,.5),transparent 55%),radial-gradient(ellipse at 60% 85%,rgba(210,225,170,.5),transparent 55%),#FCFAF6; --date-color:#7C8FA6; --head-color:#3A4656; --clock-color:#8C7C9E; --pill-bg:rgba(255,255,255,.75); --pill-color:#5A6678; --pill-accent-bg:rgba(140,124,158,.85); --pill-accent-color:#fff; --chip-bg:rgba(255,255,255,.75); --chip-color:#5A6678; --chip-active-bg:#3A4656; --chip-active-color:#fff; --task-bg:rgba(255,255,255,.8); --card-radius:18px;">
+    <div class="label" style="--label-bg:#3A4656;">⑰ 水彩画風<small>にじみ絵の具の柔らかな色面</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:repeating-linear-gradient(90deg,#8A5A34 0 26px,#7C4E2A 26px 28px); --date-color:#FFE7C2; --head-color:#fff; --clock-color:#FFD9A0; --pill-bg:rgba(0,0,0,.25); --pill-color:#FFE7C2; --pill-accent-bg:#E7A94C; --pill-accent-color:#3A2205; --chip-bg:rgba(0,0,0,.25); --chip-color:#FFE7C2; --chip-active-bg:#FFE7C2; --chip-active-color:#5C3A18; --task-bg:rgba(255,255,255,.12); --task-color:#fff; --task-meta-color:#FFE7C2; --card-radius:10px;">
+    <div class="label" style="--label-bg:#4A2E14;">⑱ 木目カフェ風<small>あたたかい木の質感、黒板メニュー感</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(135deg,#C9D6E3,#EDEFF2 40%,#D9C9E3); --date-color:#6E5A8A; --head-color:#3A2E52; --clock-color:#B94FA0; --pill-bg:linear-gradient(135deg,#fff,#E9E4F2); --pill-color:#5A4A78; --pill-accent-bg:linear-gradient(135deg,#FF6FC7,#7C8FFF); --pill-accent-color:#fff; --chip-bg:linear-gradient(135deg,#fff,#E9E4F2); --chip-color:#5A4A78; --chip-active-bg:linear-gradient(135deg,#FF6FC7,#7C8FFF); --chip-active-color:#fff; --task-bg:rgba(255,255,255,.7); --task-shadow:0 4px 14px rgba(120,100,180,.25); --card-radius:18px;">
+    <div class="label" style="--label-bg:#3A2E52;">⑲ Y2Kレトロフューチャー<small>クロム×パステルの2000年代懐かしさ</small></div>
+    <div class="in"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(#F7F3E9,#F7F3E9) padding-box, repeating-linear-gradient(0deg,#E3DCC8 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,#E3DCC8 0 1px,transparent 1px 24px); --font-head:'Yomogi',sans-serif; --date-color:#B5854A; --head-color:#4A3E2A; --clock-color:#6E7F5C; --pill-bg:#fff; --pill-color:#6E5A3A; --pill-accent-bg:#E88A6B; --pill-accent-color:#fff; --chip-bg:#fff; --chip-color:#6E5A3A; --chip-active-bg:#4A3E2A; --chip-active-color:#F7F3E9; --task-bg:#fff; --task-shadow:2px 3px 0 rgba(0,0,0,.06); --card-radius:6px;">
+    <div class="label" style="--label-bg:#4A3E2A;">⑳ 文房具ジャーナル<small>方眼ノート×マスキングテープの手帳感</small></div>
+    <div class="in"><div class="date">8/20 (木) ✎</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --card-shadow:0 10px 24px rgba(0,0,0,.12); --date-color:#999; --head-color:#111; --clock-color:#E23838; --pill-bg:#F5F5F5; --pill-color:#333; --pill-accent-bg:#111; --pill-accent-color:#fff; --pill-radius:2px; --chip-radius:2px; --chip-bg:#F5F5F5; --chip-color:#333; --chip-active-bg:#E23838; --chip-active-color:#fff; --task-bg:#fff; --task-border:1px solid #eee; --card-radius:0;">
+    <div class="label" style="--label-bg:#E23838;">㉑ アイソメトリック/立体ポップ<small>層になった影で立体感を演出</small></div>
+    <div class="in" style="box-shadow:0 3px 0 #ddd, 0 6px 0 #eee;"><div class="date">8月20日(木)</div><div class="headline">数学の時間</div><div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+</div>

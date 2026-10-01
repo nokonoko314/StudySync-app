@@ -221,10 +221,11 @@ body{
 .chipbar{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px;}
 .chipbar::-webkit-scrollbar{display:none;}
 .filter-chip{
-  flex:none; font:700 12.5px/1 inherit; padding:9px 15px; border-radius:999px;
-  background:var(--surface2); color:var(--ink-soft); border:1px solid transparent;
+  flex:none; font:700 11.5px/1 inherit; padding:7px 14px; border-radius:999px;
+  background:var(--glass-surface); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--glass-border); color:var(--ink-soft); border:none;
 }
-.filter-chip.active{background:var(--ink); color:var(--bg);}
+.filter-chip.active{background:var(--grad-accent); color:#fff; box-shadow:0 8px 18px -6px rgba(110,90,160,.65), inset 0 1px 0 rgba(255,255,255,.25);}
 .select-toggle{margin-left:auto;}
 .select-toggle.active{background:var(--indigo); color:#fff;}
 
@@ -705,11 +706,14 @@ body{
 .danger-row .row-label{color:var(--coral); font-weight:700;}
 
 /* ============ Overlay layer (sheets / action sheets / alerts) ============ */
+/* No display:none toggle here on purpose — the sheet/action-sheet/alert transitions below need
+   the element to stay laid out through the whole close animation, not vanish the instant `.show`
+   is removed. pointer-events keeps it non-interactive and untouchable while closed. */
 .overlay{
-  position:absolute; inset:0; z-index:60; display:none;
+  position:absolute; inset:0; z-index:60; pointer-events:none;
 }
-.overlay.show{display:block;}
-.scrim{position:absolute; inset:0; background:var(--scrim); opacity:0; transition:opacity .25s ease;}
+.overlay.show{pointer-events:auto;}
+.scrim{position:absolute; inset:0; background:var(--scrim); opacity:0; transition:opacity .28s cubic-bezier(.4,0,.2,1);}
 .overlay.show .scrim{opacity:1;}
 
 .sheet, .action-sheet, .alert{outline:none;}

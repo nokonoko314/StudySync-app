@@ -1,18 +1,27 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { AppData, AppSettings, GroupProject, StudySession, Subject, Task } from './types';
-import { DEFAULT_SETTINGS, MAX_CUSTOM_COLORS } from './types';
+import { DEFAULT_SETTINGS, MAX_CUSTOM_COLORS, SCHEMA_VERSION } from './types';
+import { computeNextReview, reviewPlannedMinutes } from '../lib/review';
 import { makeId } from '../lib/id';
 import { buildSeedData } from '../lib/seed';
+import { syncWidget } from '../lib/widget';
 
 const STORAGE_KEY = 'studysync.data.v1';
 
-function migrateTask(t: Task, index: number): Task {
+function migrateTask(t: Task, index: number, defaultMinutes: number): Task {
   return {
     ...t,
     reviewEnabled: t.reviewEnabled ?? true,
     reviewIntervalsDays: t.reviewIntervalsDays ?? null,
     order: t.order ?? index,
     generatedReviewTaskId: t.generatedReviewTaskId ?? null,
+    // v2: tasks saved before the timeline existed start in the 未設定 pool
+    scheduledStart: t.scheduledStart ?? null,
+    plannedMinutes: t.plannedMinutes ?? defaultMinutes,
+    completedWithoutTracking: t.completedWithoutTracking ?? false,
+    carriedFrom: t.carriedFrom ?? null,
+    reviewPreset: t.reviewPreset ?? null,
+    reviewBaseAt: t.reviewBaseAt ?? (t.isReview ? t.createdAt : null),
   };
 }
 
@@ -22,12 +31,17 @@ function migrateSession(s: StudySession): StudySession {
 
 export function migrateAppData(parsed: AppData): AppData {
   // migration: ensure new settings fields exist
-  parsed.settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+  parsed.settings = {
+    ...DEFAULT_SETTINGS,
+    ...parsed.settings,
+    googleCalendar: { ...DEFAULT_SETTINGS.googleCalendar, ...(parsed.settings?.googleCalendar ?? {}) },
+  };
+  parsed.schemaVersion = SCHEMA_VERSION;
   if (!parsed.settings.navOrder.includes('timeline')) {
     const statsIdx = parsed.settings.navOrder.indexOf('stats');
     parsed.settings.navOrder.splice(statsIdx >= 0 ? statsIdx : parsed.settings.navOrder.length, 0, 'timeline');
   }
-  parsed.tasks = parsed.tasks.map((t, i) => migrateTask(t, i));
+  parsed.tasks = parsed.tasks.map((t, i) => migrateTask(t, i, parsed.settings.defaultPlannedMinutes));
   parsed.sessions = parsed.sessions.map(migrateSession);
   return parsed;
 }
@@ -103,6 +117,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [data]);
 
   useEffect(() => {
+    syncWidget(data);
+  }, [data]);
+
+  useEffect(() => {
     const root = document.documentElement;
     if (data.settings.themeMode === 'system') root.removeAttribute('data-theme');
     else root.setAttribute('data-theme', data.settings.themeMode);
@@ -135,6 +153,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           completed: false, completedAt: null, createdAt: Date.now(), order: minOrder - 1,
           isReview: false, reviewParentId: null, reviewStage: -1,
           reviewEnabled, reviewIntervalsDays, generatedReviewTaskId: null,
+          scheduledStart: null, plannedMinutes: prev.settings.defaultPlannedMinutes,
+          completedWithoutTracking: false, carriedFrom: null, reviewPreset: null, reviewBaseAt: null,
         };
         return { ...prev, tasks: [task, ...prev.tasks] };
       });
@@ -172,9 +192,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         // only if this task has auto-review enabled, and only if a review hasn't
         // already been generated for this completion (avoids duplicates on re-toggle).
         if (nowCompleted && task.reviewEnabled && !task.generatedReviewTaskId) {
-          const intervals = task.reviewIntervalsDays ?? prev.settings.reviewIntervalsDays;
-          const nextStage = task.reviewStage + 1;
-          if (nextStage < intervals.length) {
+          const completedAt = Date.now();
+          // Per-task custom days keep the legacy behavior of counting from the due date;
+          // presets count from when the original task was completed.
+          const next = task.reviewIntervalsDays
+            ? (() => {
+                const stage = task.reviewStage + 1;
+                const days = task.reviewIntervalsDays;
+                return stage < days.length
+                  ? { stage, dueAt: computeNextReviewDue(task.dueAt, days[stage]), total: days.length }
+                  : null;
+              })()
+            : computeNextReview(task, completedAt, 'good', prev.settings.defaultReviewPreset, prev.projects);
+          if (next) {
             const minOrder = prev.tasks.reduce((min, t) => Math.min(min, t.order), 0);
             const reviewTaskId = makeId();
             const reviewTask: Task = {
@@ -182,17 +212,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
               title: task.title,
               subjectId: task.subjectId,
               projectId: task.projectId,
-              dueAt: computeNextReviewDue(task.dueAt, intervals[nextStage]),
+              dueAt: next.dueAt,
               completed: false,
               completedAt: null,
-              createdAt: Date.now(),
+              createdAt: completedAt,
               order: minOrder - 1,
               isReview: true,
               reviewParentId: task.reviewParentId ?? task.id,
-              reviewStage: nextStage,
+              reviewStage: next.stage,
               reviewEnabled: task.reviewEnabled,
               reviewIntervalsDays: task.reviewIntervalsDays,
               generatedReviewTaskId: null,
+              scheduledStart: task.scheduledStart !== null ? next.dueAt : null,
+              plannedMinutes: reviewPlannedMinutes(task.plannedMinutes),
+              completedWithoutTracking: false,
+              carriedFrom: null,
+              reviewPreset: task.reviewPreset,
+              reviewBaseAt: task.reviewBaseAt ?? completedAt,
             };
             const tasksWithLink = updatedTasks.map((t) =>
               t.id === taskId ? { ...t, generatedReviewTaskId: reviewTaskId } : t

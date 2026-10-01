@@ -1,0 +1,931 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — 計測連動タイムライン モックアップ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    font-family:"Noto Sans JP",-apple-system,sans-serif; background:#EDE7DA;
+    display:flex; align-items:flex-start; justify-content:center; padding:28px 12px 60px;
+  }
+  .note{max-width:390px; margin:0 auto 14px; text-align:center; font-size:12px; color:#8A8272; line-height:1.7;}
+  .phone{
+    width:390px; max-width:100%; background:#FEFCF8; border-radius:34px; overflow:hidden;
+    box-shadow:0 24px 60px -20px rgba(43,38,32,.35); border:1px solid #EFE9DB;
+    display:flex; flex-direction:column; height:800px; position:relative;
+  }
+  .topbar{padding:16px 22px 10px; flex:none; display:flex; align-items:flex-end; justify-content:space-between;}
+  .date{font-size:11px; color:#B08A5A; font-weight:700; letter-spacing:.04em; margin:0;}
+  .headline{font-family:"Shippori Mincho",serif; font-weight:800; font-size:22px; color:#2B2620; margin:4px 0 0;}
+  .clock-pill{font-size:11px; font-weight:800; color:#E23838; background:#FDECEA; padding:5px 10px; border-radius:99px; font-variant-numeric:tabular-nums;}
+
+  .week-strip{display:flex; justify-content:space-between; padding:12px 22px 10px; flex:none; border-bottom:1px solid #F0ECE2;}
+  .week-day{display:flex; flex-direction:column; align-items:center; gap:5px; flex:1; cursor:pointer; border:none; background:none; padding:0;}
+  .week-day .wd-label{font-size:10px; color:#B7AF9E; font-weight:700;}
+  .week-day .wd-num{
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800; color:#2B2620; position:relative;
+  }
+  .week-day.today .wd-num{background:#B08A5A; color:#fff;}
+  .week-day.viewing:not(.today) .wd-num{box-shadow:0 0 0 2px #B08A5A; color:#B08A5A;}
+  .week-day.past .wd-num{color:#C9BFA6;}
+  .week-day.has-project .wd-num::after{
+    content:""; position:absolute; left:50%; bottom:-5px; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:#8A6BD6;
+  }
+  .wd-total{font-size:8px; font-weight:700; color:#B08A5A; min-height:10px;}
+
+  .project-band{
+    display:none; align-items:center; gap:6px; margin:0 22px; padding:7px 12px; border-radius:10px;
+    background:rgba(138,107,214,.12); color:#5A4088; font-size:11px; font-weight:700;
+  }
+  .project-band.show{display:flex;}
+  .project-band .pb-icon{width:15px; height:15px; flex:none; display:flex;}
+  .project-band .pb-icon svg{width:100%; height:100%;}
+
+  .notify-banner{
+    position:absolute; left:12px; right:12px; top:12px; z-index:45; background:#2B2620; color:#fff;
+    border-radius:12px; padding:11px 13px; font-size:11.5px; display:flex; align-items:center; gap:9px;
+    box-shadow:0 10px 24px rgba(43,38,32,.3); transform:translateY(-140%); transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .notify-banner.show{transform:translateY(0);}
+  .notify-banner .nb-dot{width:8px; height:8px; border-radius:50%; background:var(--c,#B08A5A); flex:none;}
+  .notify-banner #notifyMsg{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;}
+  .notify-banner .nb-snooze{
+    margin-left:auto; background:rgba(255,255,255,.12); border:none; color:#F0D9A0; cursor:pointer;
+    font-size:10.5px; font-weight:800; padding:6px 10px; border-radius:99px; white-space:nowrap; flex:none;
+  }
+  .notify-banner .nb-close{
+    background:none; border:none; color:#B7AF9E; cursor:pointer;
+    width:26px; height:26px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .notify-banner .nb-close svg{width:14px; height:14px;}
+
+  .pool-wrap{flex:none; padding:12px 22px; border-bottom:1px solid #F0ECE2; display:flex; flex-direction:column; gap:8px;}
+  .pool-head{display:flex; align-items:center; justify-content:space-between;}
+  .pool-label{font-size:10.5px; font-weight:800; color:#8A8272; letter-spacing:.03em;}
+  .add-btn{
+    display:flex; align-items:center; gap:4px; background:#2B2620; color:#fff; border:none; border-radius:99px;
+    padding:5px 11px 5px 9px; font-size:10.5px; font-weight:800; cursor:pointer;
+  }
+  .pool{display:flex; flex-wrap:wrap; gap:8px; min-height:32px;}
+  .chip{
+    display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #EFE9DB;
+    border-radius:8px; padding:7px 10px 7px 8px; font-size:11.5px; font-weight:700; color:#2B2620;
+    cursor:grab; touch-action:none; user-select:none; box-shadow:0 1px 2px rgba(43,38,32,.04);
+  }
+  .chip:active{cursor:grabbing;}
+  .chip .dot{width:7px; height:7px; border-radius:50%; flex:none; background:var(--c,#B08A5A);}
+  .chip .tag{font-size:9.5px; font-weight:700; color:#8A8272;}
+  .pool-empty{font-size:11px; color:#B7AF9E; padding:4px 2px;}
+  .ghost-chip{
+    position:fixed; z-index:50; pointer-events:none; background:#fff; border:1px solid #EFE9DB;
+    border-left:3px solid var(--c,#B08A5A); border-radius:8px; padding:7px 10px; font-size:12px;
+    font-weight:700; color:#2B2620; box-shadow:0 10px 24px rgba(43,38,32,.22); opacity:.95;
+  }
+
+  .track-wrap{flex:1; position:relative; overflow:hidden;}
+  .board-scroll{position:absolute; inset:0; overflow-y:auto;}
+  .timeline-row{display:flex; padding:0 22px 120px; position:relative;}
+  .gutter{width:36px; flex:none; position:relative;}
+  .board{position:relative; flex:1; margin-left:10px;}
+  .hour-row{position:absolute; left:0; right:0; border-top:1px solid #F1EDE3; height:0;}
+  .hour-label{position:absolute; right:0; top:-6px; text-align:right; font-size:10px; color:#B7AF9E; font-weight:700; white-space:nowrap;}
+  .empty-day{position:absolute; left:0; right:0; top:80px; text-align:center; font-size:12px; color:#C2B9A4;}
+
+  .now-line{position:absolute; left:0; right:0; top:33%; height:0; border-top:2px solid #E23838; z-index:30; pointer-events:none; display:none;}
+  .now-line.show{display:block;}
+  .now-line::before{content:""; position:absolute; left:22px; top:-4px; width:8px; height:8px; border-radius:50%; background:#E23838;}
+  .now-line .now-time{position:absolute; left:2px; top:-9px; font-size:10px; font-weight:800; color:#E23838; background:#FEFCF8; padding:0 4px; border-radius:3px;}
+
+  .back-to-now{
+    position:absolute; right:16px; bottom:16px; z-index:31; background:#2B2620; color:#fff; border:none;
+    font-size:11px; font-weight:700; padding:8px 14px; border-radius:99px; box-shadow:0 6px 16px rgba(43,38,32,.3);
+    display:none; align-items:center; gap:6px; cursor:pointer;
+  }
+  .back-to-now.show{display:flex;}
+
+  .block{
+    position:absolute; border-radius:8px; overflow:hidden; z-index:2;
+    transition:top .5s cubic-bezier(.2,.8,.2,1), left .3s ease, width .3s ease;
+  }
+  .block.pending{touch-action:none;}
+  .block.pending.dragging{opacity:.88; z-index:8;}
+  .block.pending.dragging .block-content{box-shadow:0 8px 20px rgba(43,38,32,.2); transition:none;}
+  .block.tracking{z-index:15;}
+  .block.tracking .block-content{box-shadow:0 6px 18px rgba(43,38,32,.22), 0 0 0 1px #F1EDE3;}
+
+  .block-content{
+    position:relative; height:100%; background:#fff; border-left:3px solid var(--c,#B08A5A);
+    box-shadow:0 1px 3px rgba(43,38,32,.10), 0 0 0 1px #F1EDE3; padding:7px 10px; box-sizing:border-box;
+    transition:transform .18s ease; cursor:grab; z-index:2;
+  }
+  .block.pending .block-content:active{cursor:grabbing;}
+
+  /* スワイプで裏から現れる完了/削除アクション */
+  .swipe-action{
+    position:absolute; top:0; bottom:0; width:90px; display:flex; align-items:center; z-index:1;
+    color:#fff; font-size:11px; font-weight:800; gap:6px;
+  }
+  .swipe-action svg{width:15px; height:15px;}
+  .swipe-action.left{left:0; justify-content:flex-start; padding-left:14px; background:#4C9A6E;}
+  .swipe-action.right{right:0; justify-content:flex-end; padding-right:14px; background:#E23838;}
+
+  .block .b-subject{font-size:9.5px; font-weight:700; color:var(--c,#B08A5A); display:inline-flex; align-items:center; gap:3px;}
+  .subj-icon{width:11px; height:11px; display:inline-flex; flex:none;}
+  .subj-icon svg{width:100%; height:100%;}
+  .chip .subj-icon{width:12px; height:12px; color:var(--c,#B08A5A);}
+
+  /* 短いブロック: 中身を段階的に省略 */
+  .block.size-compact .block-content{padding:4px 8px; display:flex; align-items:center;}
+  .block.size-compact .b-title{font-size:10px; padding-right:0;}
+  .block.size-compact .b-subject, .block.size-compact .b-time{display:none;}
+  .block.size-compact .track-btn, .block.size-compact .b-edit{transform:scale(.72);}
+
+  .block.size-mini{min-height:20px;}
+  .block.size-mini .block-content{padding:0; border-left:none;}
+  .block.size-mini .b-subject, .block.size-mini .b-time,
+  .block.size-mini .track-btn, .block.size-mini .b-edit, .block.size-mini .resize-handle{display:none;}
+  /* 極短タスクは枠外に吹き出しを出すと画面端で見切れるため、帯の中に色+テキストで収める */
+  .block.size-mini .b-title{
+    display:block; position:static; padding:3px 8px; font-size:9.5px; font-weight:800; color:#fff;
+    background:var(--c,#B08A5A); border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    line-height:14px;
+  }
+  .mini-tag{display:none;}
+  .block .b-edit{
+    position:absolute; top:1px; right:32px; width:26px; height:26px; border:none; background:none;
+    color:#B7AF9E; cursor:pointer; display:none; align-items:center; justify-content:center;
+  }
+  .block .b-edit svg{width:13px; height:13px;}
+  .block.pending .b-edit{display:flex;}
+  .block .b-edit:hover{color:#2B2620;}
+  .resize-handle{
+    position:absolute; left:0; right:0; bottom:0; height:14px; cursor:ns-resize; display:none;
+    align-items:flex-end; justify-content:center; padding-bottom:3px;
+  }
+  .block.pending .resize-handle{display:flex;}
+  .resize-handle::after{content:""; width:22px; height:3px; border-radius:2px; background:#E4DCC8;}
+  .block.pending:hover .resize-handle::after{background:var(--c,#B08A5A);}
+  .block.overrun .block-content{border-left-color:#E23838; box-shadow:0 1px 3px rgba(226,56,56,.18), 0 0 0 1px #F7D9D6;}
+  .block.completed{opacity:.55;}
+  .block .b-title{font-size:12px; font-weight:700; color:#2B2620; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:20px;}
+  .block .b-time{font-size:10px; color:#8A8272; margin-top:2px; font-variant-numeric:tabular-nums;}
+  .block.overrun .b-time{color:#E23838; font-weight:700;}
+  .carry-badge{
+    display:inline-block; font-size:8.5px; font-weight:800; color:#B5652E; background:#FBEEE2;
+    padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:middle;
+  }
+
+  .ghost-block{
+    position:absolute; left:0; right:0; border:1.5px dashed #C9BFA6; border-radius:8px; z-index:1;
+    background:rgba(201,191,166,.08); pointer-events:none;
+  }
+  .ghost-block .g-label{position:absolute; right:8px; top:4px; font-size:9px; font-weight:700; color:#B7AF9E;}
+
+  .track-btn{
+    position:absolute; top:3px; right:3px; width:28px; height:28px; border-radius:50%; border:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0;
+  }
+  .track-btn svg{width:14px; height:14px;}
+  .track-btn.play{background:var(--c,#B08A5A); color:#fff;}
+  .track-btn.stop{background:#E23838; color:#fff;}
+  .track-btn:disabled{opacity:.35; cursor:not-allowed;}
+  .track-btn.done-icon{background:#EFE9DB; color:#8A8272;}
+
+  .toast{
+    position:absolute; left:16px; right:16px; bottom:16px; z-index:40; background:#2B2620; color:#fff;
+    border-radius:12px; padding:12px 14px; font-size:12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    box-shadow:0 10px 24px rgba(43,38,32,.3); transform:translateY(20px); opacity:0; transition:all .25s ease; pointer-events:none;
+  }
+  .toast.show{transform:translateY(0); opacity:1; pointer-events:auto;}
+  .toast button{background:none; border:none; color:#F0D9A0; font-weight:800; font-size:12px; cursor:pointer;}
+</style>
+
+<p class="note">週間ストリップの日付をタップすると、その日の予定だけを表示するように切り替わります(過去・未来どちらもOK)。「今日」を見ている間は日付が変わると自動で次の日に切り替わります。未設定のタスクはプールからドラッグして好きな場所に配置できます。</p>
+
+<div class="phone">
+  <div class="topbar">
+    <div>
+      <p class="date" id="dateLabel">8月20日(木)</p>
+      <h1 class="headline" id="viewHeadline">今日の予定</h1>
+    </div>
+    <div class="clock-pill" id="clockPill">--:--</div>
+  </div>
+
+  <div class="week-strip" id="weekStrip"></div>
+
+  <div class="project-band" id="projectBand"></div>
+
+  <div class="pool-wrap">
+    <div class="pool-head">
+      <span class="pool-label">未設定のタスク</span>
+      <button class="add-btn" id="addTaskBtn">＋ タスク作成</button>
+    </div>
+    <div class="pool" id="pool"></div>
+  </div>
+
+  <div class="track-wrap">
+    <div class="board-scroll" id="boardScroll">
+      <div class="timeline-row">
+        <div class="gutter" id="gutter"></div>
+        <div class="board" id="board"></div>
+      </div>
+    </div>
+    <div class="now-line" id="nowLine"><span class="now-time" id="nowTimeLabel">--:--</span></div>
+    <button class="back-to-now" id="backToNow">● 現在時刻へ戻る</button>
+    <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastUndo">元に戻す</button></div>
+    <div class="notify-banner" id="notifyBanner">
+      <span class="nb-dot" id="notifyDot"></span><span id="notifyMsg"></span>
+      <button class="nb-snooze" id="notifySnooze">3分後に再通知</button>
+      <button class="nb-close" id="notifyClose" aria-label="通知を閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PX_PER_MIN = 2;      // 1分 = 2px
+const DAY_MIN = 1440;
+const DEFAULT_DUR = 50;    // プールから新規配置したときのデフォルト所要時間(分)
+const MIN_DUR = 10;
+const TRACKING_MIN_HEIGHT = 34; // 計測中ブロックの最低表示高さ(px) — 短時間でも■が隠れないように
+const NOTIFY_BEFORE_MIN = 5;    // 開始何分前に通知するか
+
+// アイコンは絵文字ではなくSVGで統一(ui-ux-pro-max: no-emoji-icons)
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const ICON_BOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+
+const boardScroll = document.getElementById('boardScroll');
+const board = document.getElementById('board');
+const gutter = document.getElementById('gutter');
+const nowLine = document.getElementById('nowLine');
+const nowTimeLabel = document.getElementById('nowTimeLabel');
+const clockPill = document.getElementById('clockPill');
+const dateLabel = document.getElementById('dateLabel');
+const viewHeadline = document.getElementById('viewHeadline');
+const backToNow = document.getElementById('backToNow');
+const toast = document.getElementById('toast');
+const toastMsg = document.getElementById('toastMsg');
+const toastUndo = document.getElementById('toastUndo');
+const pool = document.getElementById('pool');
+const weekStrip = document.getElementById('weekStrip');
+const addTaskBtn = document.getElementById('addTaskBtn');
+const projectBand = document.getElementById('projectBand');
+const notifyBanner = document.getElementById('notifyBanner');
+const notifyDot = document.getElementById('notifyDot');
+const notifyMsg = document.getElementById('notifyMsg');
+const notifyClose = document.getElementById('notifyClose');
+const notifySnooze = document.getElementById('notifySnooze');
+
+const BASE_DATE = new Date(2026, 7, 20); // 8月20日(木) を day0 とする
+const WEEKDAYS = ['日','月','火','水','木','金','土'];
+function dateLabelForDay(dayIndex){
+  const d = new Date(BASE_DATE);
+  d.setDate(d.getDate() + dayIndex);
+  return `${d.getMonth()+1}月${d.getDate()}日(${WEEKDAYS[d.getDay()]})`;
+}
+function minutesToLabel(min){
+  const h = Math.floor(min / 60) % 24, m = Math.round(min % 60);
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+// 表示中の日(viewDay)の 0:00 を基準にした座標変換
+function minToTop(minOfDay){ return minOfDay * PX_PER_MIN; }
+function topToMin(top){ return top / PX_PER_MIN; }
+
+const SUBJECT_COLORS = {
+  '数学':'#4C6FE0', '英語':'#E0668C', '化学':'#5C9C6E', '物理':'#C9962E', '国語':'#8A6BD6',
+};
+const FALLBACK_COLORS = ['#8A6BD6','#4C6FE0','#E0668C','#5C9C6E','#C9962E','#3E9AA6'];
+function colorForSubject(subject){
+  if(SUBJECT_COLORS[subject]) return SUBJECT_COLORS[subject];
+  const c = FALLBACK_COLORS[Object.keys(SUBJECT_COLORS).length % FALLBACK_COLORS.length];
+  SUBJECT_COLORS[subject] = c;
+  return c;
+}
+
+// 色だけに頼らず教科をアイコンでも区別する(ui-ux-pro-max: color-not-only)
+const SUBJECT_ICONS = {
+  '数学': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M9 4l6 16M15 4L9 20"/></svg>',
+  '英語': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 012-2h9a2 2 0 012 2v14"/><path d="M4 19a2 2 0 002 2h11"/><path d="M4 15h13"/></svg>',
+  '化学': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a1.5 1.5 0 001.3 2.3h11.4A1.5 1.5 0 0019 18l-5-9V3"/></svg>',
+  '物理': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/></svg>',
+  '国語': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h7M4 12h7M4 18h16M14 6h6M17 6v12"/></svg>',
+};
+const FALLBACK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg>';
+function iconForSubject(subject){ return SUBJECT_ICONS[subject] || FALLBACK_ICON; }
+
+let uid = 1;
+// scheduledTasks: 日をまたいだ全タスクのデータ(絶対分 startMin = dayIndex*1440 + 分)を保持
+const scheduledTasks = [
+  { id:'b1', title:'積分の演習問題 第3章', subject:'数学', color:colorForSubject('数学'), startMin: 14*60,      dur:50, status:'pending', trackStartMin:null },
+  { id:'b2', title:'英単語 Unit 12 暗記',   subject:'英語', color:colorForSubject('英語'), startMin: 15*60+10,   dur:40, status:'pending', trackStartMin:null },
+  { id:'b3', title:'化学 レポート提出',      subject:'化学', color:colorForSubject('化学'), startMin: 16*60+20,   dur:30, status:'pending', trackStartMin:null },
+];
+const poolTasks = [
+  { id:'p1', title:'物理 力学まとめノート作成', subject:'物理', color:colorForSubject('物理') },
+];
+
+// 複数日にまたがるプロジェクト(期間全体を帯で示す)
+const PROJECTS = [
+  { name:'期末試験', startDay:2, endDay:4, color:'#8A6BD6' },
+];
+function projectForDay(dayIndex){
+  return PROJECTS.find(p => dayIndex >= p.startDay && dayIndex <= p.endDay);
+}
+
+let nowMin = 14*60 - 4;                 // 絶対分(day0の0:00からの経過分)。デモ開始: 8/20 13:56
+let viewDay = Math.floor(nowMin / DAY_MIN); // 現在表示している日
+let activeTaskId = null;
+let following = true;                   // 「今日」を見ていて、現在時刻に自動追従するか
+let programmaticScroll = false;
+
+function todayIndex(){ return Math.floor(nowMin / DAY_MIN); }
+
+// ---- 週間カレンダーストリップ ----
+const weekDayEls = [];
+for(let i = -3; i <= 6; i++){
+  const d = new Date(BASE_DATE); d.setDate(d.getDate() + i);
+  const el = document.createElement('button');
+  el.className = 'week-day';
+  el.innerHTML = `<span class="wd-label">${WEEKDAYS[d.getDay()]}</span><span class="wd-num">${d.getDate()}</span><span class="wd-total"></span>`;
+  el.addEventListener('click', () => switchToDay(i));
+  weekStrip.appendChild(el);
+  weekDayEls.push({ dayIndex:i, el, totalEl: el.querySelector('.wd-total') });
+}
+function dailyTrackedMinutes(dayIndex){
+  return scheduledTasks
+    .filter(t => t.status === 'completed' && !t.quickCompleted && Math.floor(t.startMin / DAY_MIN) === dayIndex)
+    .reduce((sum, t) => sum + t.dur, 0);
+}
+function refreshWeekStrip(){
+  const t = todayIndex();
+  weekDayEls.forEach(({ dayIndex, el, totalEl }) => {
+    el.classList.toggle('today', dayIndex === t);
+    el.classList.toggle('viewing', dayIndex === viewDay);
+    el.classList.toggle('past', dayIndex < t);
+    el.classList.toggle('has-project', !!projectForDay(dayIndex));
+    const mins = dailyTrackedMinutes(dayIndex);
+    totalEl.textContent = mins > 0 ? (mins >= 60 ? (mins/60).toFixed(1)+'h' : mins+'分') : '';
+  });
+}
+
+// ---- 指定した日の予定だけを描画する ----
+function switchToDay(dayIndex){
+  viewDay = dayIndex;
+  following = (dayIndex === todayIndex());
+  renderDayGrid();
+  renderBlocks();
+  refreshWeekStrip();
+  dateLabel.textContent = dateLabelForDay(dayIndex);
+  viewHeadline.textContent = following ? '今日の予定' : `${dateLabelForDay(dayIndex)}の予定`;
+  backToNow.classList.remove('show');
+
+  const proj = projectForDay(dayIndex);
+  if(proj){
+    const dayNum = dayIndex - proj.startDay + 1;
+    const total = proj.endDay - proj.startDay + 1;
+    projectBand.innerHTML = `<span class="pb-icon" aria-hidden="true">${ICON_BOOK}</span>${proj.name}期間中 (${dayNum}/${total}日目)`;
+    projectBand.classList.add('show');
+  } else {
+    projectBand.classList.remove('show');
+  }
+  if(following){
+    nowLine.classList.add('show');
+    requestAnimationFrame(autoScrollToNow);
+  } else {
+    nowLine.classList.remove('show');
+    boardScroll.scrollTop = Math.max(0, minToTop(7*60) - 60); // 7時あたりを目安に表示
+  }
+}
+
+function renderDayGrid(){
+  gutter.innerHTML = '';
+  board.querySelectorAll('.hour-row, .hour-label, .empty-day').forEach(el => el.remove());
+  for(let h = 0; h < 24; h++){
+    const row = document.createElement('div');
+    row.className = 'hour-row';
+    row.style.top = minToTop(h*60) + 'px';
+    board.appendChild(row);
+    const label = document.createElement('div');
+    label.className = 'hour-label';
+    label.style.top = (minToTop(h*60) - 6) + 'px';
+    label.textContent = String(h).padStart(2,'0') + ':00';
+    gutter.appendChild(label);
+  }
+  const totalHeight = minToTop(24*60) + 20;
+  board.style.height = totalHeight + 'px';
+  gutter.style.height = totalHeight + 'px';
+}
+
+// ---- ブロックのDOM管理(表示中の日のタスクだけを再構築) ----
+let blockEls = []; // { task, el, ... }
+
+function renderBlocks(){
+  board.querySelectorAll('.block, .ghost-block').forEach(el => el.remove());
+  blockEls = [];
+  const dayStart = viewDay * DAY_MIN;
+  scheduledTasks
+    .filter(t => Math.floor(t.startMin / DAY_MIN) === viewDay)
+    .forEach(t => mountBlock(t, dayStart));
+
+  const empty = board.querySelector('.empty-day');
+  if(!scheduledTasks.some(t => Math.floor(t.startMin / DAY_MIN) === viewDay)){
+    if(!empty){
+      const e = document.createElement('div');
+      e.className = 'empty-day';
+      e.textContent = 'この日の予定はまだありません。プールからドラッグして配置できます。';
+      board.appendChild(e);
+    }
+  }
+  recomputeOverlapLayout();
+}
+
+function mountBlock(task, dayStart){
+  const wrap = document.createElement('div');
+  wrap.className = 'block' + (task.status === 'pending' ? ' pending' : '') + (task.status === 'tracking' ? ' tracking' : '') + (task.status === 'completed' ? ' completed' : '');
+  wrap.style.setProperty('--c', task.color);
+  const localTop = minToTop(task.startMin - dayStart);
+  wrap.style.top = localTop + 'px';
+  wrap.style.height = (task.dur * PX_PER_MIN) + 'px';
+
+  // スワイプで完了/削除できるよう、見た目を持つ層(content)と背後のアクション層を分離
+  const swipeLeft = document.createElement('div');
+  swipeLeft.className = 'swipe-action left';
+  swipeLeft.innerHTML = `${ICON_CHECK}<span>完了</span>`;
+  const swipeRight = document.createElement('div');
+  swipeRight.className = 'swipe-action right';
+  swipeRight.innerHTML = `<span>削除</span>${ICON_CLOSE}`;
+
+  const content = document.createElement('div');
+  content.className = 'block-content';
+
+  const title = document.createElement('div'); title.className = 'b-title';
+  title.innerHTML = task.title + (task.carried ? '<span class="carry-badge">繰越</span>' : '');
+  const subject = document.createElement('div'); subject.className = 'b-subject';
+  subject.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span>${task.subject}`;
+  const time = document.createElement('div'); time.className = 'b-time';
+  const btn = document.createElement('button');
+  btn.className = 'track-btn ' + (task.status === 'tracking' ? 'stop' : task.status === 'completed' ? 'done-icon' : 'play');
+  btn.innerHTML = task.status === 'tracking' ? ICON_STOP : task.status === 'completed' ? ICON_CHECK : ICON_PLAY;
+  btn.setAttribute('aria-label', task.status === 'tracking' ? '計測を停止' : task.status === 'completed' ? '計測済み' : '計測を開始');
+  if(task.status === 'completed') btn.disabled = true;
+  if(task.status === 'pending' && activeTaskId) btn.disabled = true;
+  const editBtn = document.createElement('button');
+  editBtn.className = 'b-edit'; editBtn.innerHTML = ICON_EDIT; editBtn.title = 'タスク・教科を変更';
+  editBtn.setAttribute('aria-label', 'タスク・教科を変更');
+  const handle = document.createElement('div'); handle.className = 'resize-handle';
+  const miniTag = document.createElement('div'); miniTag.className = 'mini-tag';
+
+  content.append(title, subject, time, btn, editBtn, handle, miniTag);
+  wrap.append(swipeLeft, swipeRight, content);
+  board.appendChild(wrap);
+
+  const rec = { task, el:wrap, btn, timeEl:time, titleEl:title, subjectEl:subject, miniTag, ghost:null };
+
+  function refreshLabel(){
+    const startOfDayMin = task.startMin - dayStart;
+    time.textContent = `${minutesToLabel(startOfDayMin)} - ${minutesToLabel(startOfDayMin + task.dur)} (${Math.round(task.dur)}分)`;
+    if(task.status === 'tracking'){
+      // 計測中は実際の経過が短くても操作(■停止)が必ず押せるよう省略表示にしない
+      wrap.classList.remove('size-mini', 'size-compact');
+    } else {
+      const h = parseFloat(wrap.style.height);
+      wrap.classList.toggle('size-mini', h < 16);
+      wrap.classList.toggle('size-compact', h >= 16 && h < 30);
+    }
+    miniTag.textContent = task.title;
+  }
+  refreshLabel();
+  rec.refreshLabel = refreshLabel;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if(task.status === 'pending') startTracking(rec, dayStart);
+    else if(task.status === 'tracking') stopTracking(rec, dayStart);
+  });
+
+  editBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+  editBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const newTitle = prompt('タスク名を変更', task.title);
+    if(newTitle && newTitle.trim()) task.title = newTitle.trim();
+    const subjects = Object.keys(SUBJECT_COLORS);
+    const newSubject = prompt(`教科を変更(${subjects.join(' / ')})`, task.subject);
+    if(newSubject && newSubject.trim()){
+      task.subject = newSubject.trim();
+      task.color = colorForSubject(task.subject);
+      wrap.style.setProperty('--c', task.color);
+    }
+    title.innerHTML = task.title + (task.carried ? '<span class="carry-badge">繰越</span>' : '');
+    subject.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span>${task.subject}`;
+    refreshLabel();
+  });
+
+  // ---- 本体ドラッグ: 縦方向なら時間帯の移動、横方向ならスワイプで完了/削除 ----
+  wrap.addEventListener('pointerdown', (e) => {
+    if(task.status !== 'pending') return;
+    if(e.target === handle || e.target === btn || e.target === editBtn) return;
+    e.preventDefault();
+    wrap.setPointerCapture(e.pointerId);
+    const startX = e.clientX, startY = e.clientY;
+    const startTop = parseFloat(wrap.style.top);
+    let mode = null; // 'vertical' | 'horizontal'
+    function onMove(ev){
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if(!mode){
+        if(Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        mode = Math.abs(dx) > Math.abs(dy) ? 'horizontal' : 'vertical';
+        if(mode === 'vertical') wrap.classList.add('dragging');
+      }
+      if(mode === 'vertical'){
+        let newTop = startTop + dy;
+        const maxTop = board.clientHeight - parseFloat(wrap.style.height);
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+        wrap.style.top = newTop + 'px';
+        task.startMin = dayStart + topToMin(newTop);
+        refreshLabel();
+      } else {
+        const clamped = Math.max(-90, Math.min(90, dx));
+        content.style.transform = `translateX(${clamped}px)`;
+        wrap.classList.toggle('swipe-reveal-right', clamped < -20);
+        wrap.classList.toggle('swipe-reveal-left', clamped > 20);
+      }
+    }
+    function onUp(ev){
+      wrap.releasePointerCapture(e.pointerId);
+      wrap.classList.remove('dragging');
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      if(mode === 'horizontal'){
+        const dx = ev.clientX - startX;
+        content.style.transform = '';
+        wrap.classList.remove('swipe-reveal-right', 'swipe-reveal-left');
+        if(dx <= -70){ deleteTask(rec); }
+        else if(dx >= 70){ quickComplete(rec, dayStart); }
+      } else if(mode === 'vertical'){
+        recomputeOverlapLayout();
+      }
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+
+  handle.addEventListener('pointerdown', (e) => {
+    if(task.status !== 'pending') return;
+    e.preventDefault(); e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    const startY = e.clientY;
+    const startHeight = parseFloat(wrap.style.height);
+    const top = parseFloat(wrap.style.top);
+    function onMove(ev){
+      let newHeight = startHeight + (ev.clientY - startY);
+      const maxHeight = board.clientHeight - top;
+      newHeight = Math.max(MIN_DUR * PX_PER_MIN, Math.min(newHeight, maxHeight));
+      wrap.style.height = newHeight + 'px';
+      task.dur = newHeight / PX_PER_MIN;
+      refreshLabel();
+    }
+    function onUp(){
+      handle.releasePointerCapture(e.pointerId);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      recomputeOverlapLayout();
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+
+  blockEls.push(rec);
+  return rec;
+}
+
+// ---- 重なったタスクを横に並べて、どれも掴めるようにする ----
+function recomputeOverlapLayout(){
+  const layoutable = blockEls.filter(b => b.task.status !== 'tracking');
+  const items = layoutable.map(b => ({
+    b, top: parseFloat(b.el.style.top), bottom: parseFloat(b.el.style.top) + parseFloat(b.el.style.height),
+  })).sort((a, c) => a.top - c.top || a.bottom - c.bottom);
+
+  let cluster = [], clusterEnd = -Infinity;
+  const clusters = [];
+  items.forEach(item => {
+    if(item.top >= clusterEnd && cluster.length){ clusters.push(cluster); cluster = []; }
+    cluster.push(item);
+    clusterEnd = Math.max(clusterEnd, item.bottom);
+  });
+  if(cluster.length) clusters.push(cluster);
+
+  clusters.forEach(cl => {
+    const colEnds = [];
+    cl.forEach(item => {
+      let col = colEnds.findIndex(end => end <= item.top + 0.5);
+      if(col === -1){ col = colEnds.length; colEnds.push(item.bottom); }
+      else colEnds[col] = item.bottom;
+      item.col = col;
+    });
+    const maxCols = colEnds.length;
+    cl.forEach(item => {
+      const widthPct = 100 / maxCols;
+      item.b.el.style.left = (item.col * widthPct) + '%';
+      item.b.el.style.width = maxCols > 1 ? `calc(${widthPct}% - 6px)` : '100%';
+    });
+  });
+
+  blockEls.filter(b => b.task.status === 'tracking').forEach(b => {
+    b.el.style.left = '0'; b.el.style.width = '100%';
+  });
+}
+
+// ---- スワイプ操作: 右へ大きくスワイプ=計測せず完了、左へ=削除 ----
+function deleteTask(rec){
+  const idx = scheduledTasks.indexOf(rec.task);
+  if(idx > -1) scheduledTasks.splice(idx, 1);
+  renderBlocks();
+  refreshWeekStrip();
+}
+function quickComplete(rec, dayStart){
+  const task = rec.task;
+  task.status = 'completed';
+  task.quickCompleted = true; // 計測せず完了にしたので、合計学習時間には含めない
+  showToast(`「${task.title}」を完了にしました(未計測)`, () => {
+    task.status = 'pending';
+    renderBlocks();
+    refreshWeekStrip();
+  });
+  renderBlocks();
+  refreshWeekStrip();
+}
+
+function startTracking(rec, dayStart){
+  if(activeTaskId) return; // 同時計測は1件まで
+  const task = rec.task;
+  activeTaskId = task.id;
+  task.status = 'tracking';
+  task.trackStartMin = nowMin;
+  task.plannedStartMin = task.startMin;
+  task.plannedDur = task.dur;
+  rec.btn.innerHTML = ICON_STOP;
+  rec.btn.className = 'track-btn stop';
+  rec.btn.setAttribute('aria-label', '計測を停止');
+  rec.el.classList.remove('pending');
+  rec.el.classList.add('tracking');
+  blockEls.forEach(b => { if(b !== rec && b.task.status === 'pending') b.btn.disabled = true; });
+
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost-block';
+  ghost.style.top = minToTop(task.plannedStartMin - dayStart) + 'px';
+  ghost.style.height = (task.plannedDur * PX_PER_MIN) + 'px';
+  const s = task.plannedStartMin - dayStart;
+  ghost.innerHTML = `<span class="g-label">予定 ${minutesToLabel(s)}〜${minutesToLabel(s + task.plannedDur)}</span>`;
+  board.insertBefore(ghost, rec.el);
+  rec.ghost = ghost;
+
+  task.startMin = nowMin;
+  task.dur = 3;
+  rec.el.style.top = minToTop(task.startMin - dayStart) + 'px';
+  rec.el.style.height = TRACKING_MIN_HEIGHT + 'px'; // 経過1分でも■ボタンが隠れないよう最低の高さを確保
+  rec.refreshLabel();
+}
+
+function stopTracking(rec, dayStart){
+  const task = rec.task;
+  const actualMin = Math.max(1, nowMin - task.trackStartMin);
+  const overrun = Math.max(0, actualMin - task.plannedDur);
+
+  task.status = 'completed';
+  task.dur = actualMin;
+  rec.el.classList.add('completed');
+  rec.el.classList.remove('overrun', 'tracking');
+  rec.btn.innerHTML = ICON_CHECK;
+  rec.btn.className = 'track-btn done-icon';
+  rec.btn.setAttribute('aria-label', '計測済み');
+  rec.btn.disabled = true;
+  if(rec.ghost){ rec.ghost.remove(); rec.ghost = null; }
+  // 計測中は最低34pxを確保していたが、停止後は実際の所要時間どおりの高さに戻す(1分なら1分ぶんの薄さに)
+  rec.el.style.height = (task.dur * PX_PER_MIN) + 'px';
+  rec.refreshLabel();
+  activeTaskId = null;
+  blockEls.forEach(b => { if(b.task.status === 'pending') b.btn.disabled = false; });
+
+  if(overrun > 0.5){
+    const cutoffMin = task.plannedStartMin + task.plannedDur;
+    const affected = blockEls.filter(b => b !== rec && b.task.status === 'pending' && b.task.startMin >= cutoffMin - 1);
+    const prevStarts = affected.map(b => b.task.startMin);
+    affected.forEach(b => {
+      b.task.startMin += overrun;
+      b.el.style.top = minToTop(b.task.startMin - dayStart) + 'px';
+      b.refreshLabel();
+    });
+    if(affected.length){
+      showToast(`予定が押したため、後続の${affected.length}件を約${Math.round(overrun)}分後ろに調整しました`, () => {
+        affected.forEach((b, i) => { b.task.startMin = prevStarts[i]; b.el.style.top = minToTop(b.task.startMin - dayStart) + 'px'; b.refreshLabel(); });
+      });
+    }
+  }
+  recomputeOverlapLayout();
+  refreshWeekStrip();
+}
+
+let toastTimer = null;
+function showToast(msg, onUndo){
+  toastMsg.textContent = msg;
+  toast.classList.add('show');
+  toastUndo.onclick = () => { onUndo(); hideToast(); };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 5000);
+}
+function hideToast(){ toast.classList.remove('show'); }
+
+// ---- 未設定タスクのプール ----
+function renderPoolEmptyState(){
+  if(!pool.children.length){
+    const p = document.createElement('div');
+    p.className = 'pool-empty'; p.textContent = '未設定のタスクはありません';
+    p.dataset.empty = '1';
+    pool.appendChild(p);
+  }
+}
+function clearPoolEmptyState(){ const e = pool.querySelector('[data-empty]'); if(e) e.remove(); }
+
+function renderPool(){
+  pool.innerHTML = '';
+  poolTasks.forEach(makeChip);
+  renderPoolEmptyState();
+}
+function makeChip(task){
+  clearPoolEmptyState();
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.style.setProperty('--c', task.color);
+  chip.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span>${task.title}<span class="tag">${task.subject}</span>`;
+  chip.addEventListener('pointerdown', (e) => startDragFromPool(e, task, chip));
+  pool.appendChild(chip);
+  return chip;
+}
+
+function startDragFromPool(e, task, chip){
+  e.preventDefault();
+  chip.setPointerCapture(e.pointerId);
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost-chip';
+  ghost.style.setProperty('--c', task.color);
+  ghost.textContent = task.title;
+  document.body.appendChild(ghost);
+  positionGhost(ghost, e.clientX, e.clientY);
+
+  function onMove(ev){ positionGhost(ghost, ev.clientX, ev.clientY); }
+  function onUp(ev){
+    chip.releasePointerCapture(e.pointerId);
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    ghost.remove();
+
+    const rect = board.getBoundingClientRect();
+    const overBoard = ev.clientX >= rect.left && ev.clientX <= rect.right &&
+                       ev.clientY >= rect.top - 40 && ev.clientY <= rect.bottom + 40;
+    if(overBoard){
+      let top = ev.clientY - rect.top - 14;
+      const maxTop = board.clientHeight - DEFAULT_DUR * PX_PER_MIN;
+      top = Math.max(0, Math.min(top, maxTop));
+      const dayStart = viewDay * DAY_MIN;
+      scheduledTasks.push({
+        id:'t' + (uid++), title:task.title, subject:task.subject, color:task.color,
+        startMin: dayStart + topToMin(top), dur: DEFAULT_DUR, status:'pending', trackStartMin:null,
+      });
+      const idx = poolTasks.indexOf(task);
+      if(idx > -1) poolTasks.splice(idx, 1);
+      renderPool();
+      renderBlocks();
+      refreshWeekStrip();
+    }
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+function positionGhost(ghost, x, y){ ghost.style.left = (x + 14) + 'px'; ghost.style.top = (y - 14) + 'px'; }
+
+addTaskBtn.addEventListener('click', () => {
+  const title = prompt('タスク名を入力してください');
+  if(!title || !title.trim()) return;
+  const subjects = Object.keys(SUBJECT_COLORS);
+  const subject = prompt(`教科を入力してください(例: ${subjects.join(' / ')})`, subjects[0]);
+  if(!subject || !subject.trim()) return;
+  const s = subject.trim();
+  poolTasks.push({ id:'p' + (uid++), title:title.trim(), subject:s, color:colorForSubject(s) });
+  renderPool();
+});
+
+// ---- 現在時刻ラインへの追従スクロール(「今日」表示中のみ) ----
+function autoScrollToNow(){
+  if(!following) return;
+  const target = minToTop(nowMin - viewDay*DAY_MIN) - boardScroll.clientHeight * 0.33;
+  programmaticScroll = true;
+  boardScroll.scrollTop = Math.max(0, target);
+  requestAnimationFrame(() => { programmaticScroll = false; });
+}
+boardScroll.addEventListener('scroll', () => {
+  if(programmaticScroll || !following) return;
+  following = false;
+  backToNow.classList.add('show');
+});
+backToNow.addEventListener('click', () => {
+  if(viewDay !== todayIndex()){ switchToDay(todayIndex()); return; }
+  following = true;
+  nowLine.classList.add('show');
+  backToNow.classList.remove('show');
+  autoScrollToNow();
+});
+
+// ---- 前日までに終わらなかったタスクは自動で翌日の同じ時刻へ繰り越す ----
+function carryOverIncomplete(oldDay){
+  const carried = scheduledTasks.filter(t => t.status === 'pending' && Math.floor(t.startMin / DAY_MIN) === oldDay);
+  carried.forEach(t => { t.startMin += DAY_MIN; t.carried = true; });
+  return carried;
+}
+
+// ---- まもなく開始するタスクの通知バナー(スヌーズ対応) ----
+const notifiedIds = new Set();
+const SNOOZE_MIN = 3;
+let currentNotifyTaskId = null;
+notifyClose.addEventListener('click', () => notifyBanner.classList.remove('show'));
+notifySnooze.addEventListener('click', () => {
+  if(currentNotifyTaskId){
+    // 指定分だけ再通知しないようにし、その後は改めて対象になれば通知される
+    notifiedIds.add(currentNotifyTaskId);
+    const idToRelease = currentNotifyTaskId;
+    setTimeout(() => notifiedIds.delete(idToRelease), SNOOZE_MIN * 60 * (200 / 1)); // シミュレーション時間換算(1分=200ms)
+  }
+  notifyBanner.classList.remove('show');
+});
+let notifyHideTimer = null;
+function checkUpcomingNotifications(t){
+  if(viewDay !== t) return; // 「今日」を見ている時だけ通知(離れた日を見ている間は出さない)
+  const upcoming = scheduledTasks.find(task =>
+    task.status === 'pending' &&
+    Math.floor(task.startMin / DAY_MIN) === t &&
+    !notifiedIds.has(task.id) &&
+    (task.startMin - nowMin) <= NOTIFY_BEFORE_MIN && (task.startMin - nowMin) >= 0
+  );
+  if(upcoming){
+    notifiedIds.add(upcoming.id);
+    currentNotifyTaskId = upcoming.id;
+    notifyDot.style.setProperty('--c', upcoming.color);
+    const startLocal = upcoming.startMin - t*DAY_MIN;
+    notifyMsg.textContent = `まもなく「${upcoming.title}」の時間です(${minutesToLabel(startLocal)}〜)`;
+    notifySnooze.textContent = `${SNOOZE_MIN}分後に再通知`;
+    notifyBanner.classList.add('show');
+    clearTimeout(notifyHideTimer);
+    notifyHideTimer = setTimeout(() => notifyBanner.classList.remove('show'), 6000);
+  }
+}
+
+// ---- デモ用の時計進行（1分=200ms）。日付が変わったら「今日」を見ている場合だけ自動で切り替える ----
+let lastKnownToday = todayIndex();
+function tick(){
+  nowMin += 1;
+  const t = todayIndex();
+  clockPill.textContent = minutesToLabel(nowMin - t*DAY_MIN);
+
+  if(t !== lastKnownToday){
+    const oldDay = lastKnownToday;
+    const wasOnToday = (viewDay === oldDay);
+    const carried = carryOverIncomplete(oldDay);
+    lastKnownToday = t;
+    if(wasOnToday){ switchToDay(t); }
+    else { renderBlocks(); refreshWeekStrip(); }
+    if(carried.length > 0 && viewDay === t){
+      showToast(`前日に終わらなかった${carried.length}件のタスクを今日に繰り越しました`, () => {
+        carried.forEach(task => { task.startMin -= DAY_MIN; task.carried = false; });
+        renderBlocks(); refreshWeekStrip();
+      });
+    }
+  }
+
+  if(viewDay === t){
+    checkUpcomingNotifications(t);
+    nowTimeLabel.textContent = minutesToLabel(nowMin - t*DAY_MIN);
+    if(activeTaskId){
+      const rec = blockEls.find(b => b.task.id === activeTaskId);
+      if(rec){
+        const durMin = nowMin - rec.task.trackStartMin;
+        rec.task.dur = Math.max(1, durMin);
+        rec.el.style.height = Math.max(TRACKING_MIN_HEIGHT, durMin * PX_PER_MIN) + 'px';
+        rec.refreshLabel();
+        rec.el.classList.toggle('overrun', durMin > rec.task.plannedDur);
+      }
+    }
+    recomputeOverlapLayout();
+    autoScrollToNow();
+  }
+}
+setInterval(tick, 200);
+
+switchToDay(viewDay);
+renderPool();
+clockPill.textContent = minutesToLabel(nowMin - viewDay*DAY_MIN);
+</script>

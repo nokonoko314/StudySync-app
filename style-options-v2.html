@@ -1,0 +1,235 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — スタイル案 v2(大胆案)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@700&family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:28px; max-width:1400px; margin:0 auto;}
+  .card{background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.08);}
+  .card h2{font-size:14px; margin:0; padding:14px 18px; background:#16151A; color:#fff;}
+  .card h2 small{display:block; font-size:10.5px; font-weight:400; opacity:.65; margin-top:2px;}
+  .frame{padding:0;}
+
+  /* ============ ① note風エディトリアル ============ */
+  .s1{background:#fff;}
+  .s1 .in{padding:24px 22px 26px; font-family:"Noto Sans JP";}
+  .s1 .date{font-size:11px; color:#6E6678; letter-spacing:.05em;}
+  .s1 .headline{font-family:"Shippori Mincho",serif; font-weight:800; font-size:26px; color:#111; margin:6px 0 2px; line-height:1.3;}
+  .s1 .clock{font-family:"Space Grotesk",sans-serif; font-size:15px; color:#41C36F; font-weight:700; margin-top:2px;}
+  .s1 .rule{border:none; border-top:1px solid #EEECE6; margin:16px 0;}
+  .s1 .row{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:#555;}
+  .s1 .row b{color:#111;}
+  .s1 .chips{display:flex; gap:0; margin-top:18px; border-bottom:1px solid #EEECE6;}
+  .s1 .chip{padding:8px 4px; margin-right:20px; font-size:12.5px; font-weight:700; color:#9C9990; border-bottom:2px solid transparent;}
+  .s1 .chip.active{color:#111; border-color:#41C36F;}
+  .s1 .task{margin-top:18px; padding:14px 0; border-bottom:1px solid #F2F0EA; display:flex; gap:10px; align-items:flex-start;}
+  .s1 .dot{width:6px; height:6px; border-radius:50%; background:#41C36F; margin-top:6px; flex:none;}
+  .s1 .task b{font-size:13.5px; color:#111; display:block; font-weight:700;}
+  .s1 .task .meta{font-size:11px; color:#9C9990; margin-top:3px;}
+
+  /* ============ ② ネオブルータリズム ============ */
+  .s2{background:#FFE66D;}
+  .s2 .in{padding:20px; font-family:"Noto Sans JP";}
+  .s2 .date{font-size:11px; font-weight:800; color:#111; text-transform:uppercase; background:#fff; display:inline-block; padding:2px 8px; border:2px solid #111;}
+  .s2 .headline{font-weight:900; font-size:26px; color:#111; margin:10px 0 0; letter-spacing:-.02em;}
+  .s2 .clock{font-weight:900; font-size:15px; color:#111; margin-top:2px;}
+  .s2 .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .s2 .pill{padding:6px 10px; font-size:10.5px; font-weight:800; background:#fff; border:2px solid #111; box-shadow:3px 3px 0 #111;}
+  .s2 .pill.accent{background:#FF4F64; color:#fff;}
+  .s2 .chips{display:flex; gap:8px; margin-top:16px;}
+  .s2 .chip{padding:8px 12px; font-size:10.5px; font-weight:800; background:#fff; border:2px solid #111; box-shadow:2px 2px 0 #111;}
+  .s2 .chip.active{background:#111; color:#fff;}
+  .s2 .task{margin-top:16px; background:#fff; border:2px solid #111; box-shadow:4px 4px 0 #111; padding:12px 14px;}
+  .s2 .task b{font-size:13px; color:#111; font-weight:800;}
+  .s2 .task .meta{font-size:10.5px; color:#555; margin-top:4px; font-weight:700;}
+
+  /* ============ ③ ダークアカデミア ============ */
+  .s3{background:#1E2A22;}
+  .s3 .in{padding:22px; font-family:"Noto Sans JP";}
+  .s3 .date{font-size:11px; color:#C9A85C; letter-spacing:.08em;}
+  .s3 .headline{font-family:"Zen Old Mincho",serif; font-weight:700; font-size:25px; color:#F3ECD9; margin:8px 0 2px;}
+  .s3 .clock{font-size:14px; color:#8FAE8E; margin-top:2px;}
+  .s3 .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .s3 .pill{padding:6px 11px; border-radius:3px; font-size:10.5px; font-weight:700; background:rgba(201,168,92,.12); color:#C9A85C; border:1px solid rgba(201,168,92,.35);}
+  .s3 .pill.accent{background:#C9A85C; color:#1E2A22;}
+  .s3 .chips{display:flex; gap:6px; margin-top:16px;}
+  .s3 .chip{padding:7px 13px; border-radius:3px; font-size:10.5px; font-weight:700; color:#8FAE8E; border:1px solid rgba(143,174,142,.3);}
+  .s3 .chip.active{background:#8FAE8E; color:#1E2A22;}
+  .s3 .task{margin-top:16px; background:rgba(255,255,255,.04); border-left:2px solid #C9A85C; padding:12px 14px;}
+  .s3 .task b{font-size:12.5px; color:#F3ECD9;}
+  .s3 .task .meta{font-size:10.5px; color:#8FAE8E; margin-top:4px;}
+
+  /* ============ ④ ビビッドポップ ============ */
+  .s4{background:linear-gradient(160deg,#FF6FA5,#7C6BFF);}
+  .s4 .in{padding:22px; font-family:"Noto Sans JP";}
+  .s4 .date{font-size:11px; font-weight:800; color:rgba(255,255,255,.85);}
+  .s4 .headline{font-weight:900; font-size:27px; color:#fff; margin:8px 0 2px; letter-spacing:-.02em;}
+  .s4 .clock{font-size:14px; color:rgba(255,255,255,.85); margin-top:2px; font-weight:700;}
+  .s4 .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .s4 .pill{padding:7px 12px; border-radius:99px; font-size:10.5px; font-weight:800; background:rgba(255,255,255,.22); color:#fff;}
+  .s4 .pill.accent{background:#FFE66D; color:#3A2E00;}
+  .s4 .chips{display:flex; gap:6px; margin-top:16px;}
+  .s4 .chip{padding:8px 14px; border-radius:99px; font-size:10.5px; font-weight:800; background:rgba(255,255,255,.22); color:#fff;}
+  .s4 .chip.active{background:#fff; color:#7C6BFF;}
+  .s4 .task{margin-top:16px; background:#fff; border-radius:18px; padding:13px 15px;}
+  .s4 .task b{font-size:12.5px; color:#2A2140;}
+  .s4 .task .meta{font-size:10.5px; color:#7C6BFF; margin-top:4px; font-weight:700;}
+
+  /* ============ ⑤ 和紙モダン ============ */
+  .s5{background:#F4EFE4;}
+  .s5 .in{padding:22px; font-family:"Noto Sans JP"; position:relative;}
+  .s5 .date{font-size:11px; color:#B23A2E; letter-spacing:.08em; font-weight:700;}
+  .s5 .headline{font-family:"Zen Old Mincho",serif; font-weight:700; font-size:25px; color:#2B2620; margin:8px 0 2px;}
+  .s5 .clock{font-size:14px; color:#3E5C56; margin-top:2px;}
+  .s5 .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .s5 .pill{padding:6px 11px; border-radius:2px; font-size:10.5px; font-weight:700; background:#fff; color:#3E5C56; border:1px solid #DCD2BC;}
+  .s5 .pill.accent{background:#B23A2E; color:#fff;}
+  .s5 .chips{display:flex; gap:0; margin-top:18px; border-bottom:2px solid #2B2620;}
+  .s5 .chip{padding:7px 14px; font-size:11.5px; font-weight:700; color:#8A8272;}
+  .s5 .chip.active{color:#2B2620; background:#2B2620; color:#F4EFE4;}
+  .s5 .task{margin-top:16px; background:#fff; border:1px solid #DCD2BC; padding:12px 14px;}
+  .s5 .task b{font-size:12.5px; color:#2B2620;}
+  .s5 .task .meta{font-size:10.5px; color:#8A8272; margin-top:4px;}
+
+  /* ============ ⑥ ソフトパステル ============ */
+  .s6{background:#FDEFF6;}
+  .s6 .in{padding:22px; font-family:"Noto Sans JP";}
+  .s6 .date{font-size:11px; font-weight:800; color:#C87BAE;}
+  .s6 .headline{font-weight:900; font-size:25px; color:#5B4B6A; margin:8px 0 2px;}
+  .s6 .clock{font-size:14px; color:#8E7FA8; margin-top:2px; font-weight:700;}
+  .s6 .row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .s6 .pill{padding:7px 12px; border-radius:99px; font-size:10.5px; font-weight:800; background:#fff; color:#8E7FA8;}
+  .s6 .pill.accent{background:#FFB4CE; color:#7A2E52;}
+  .s6 .chips{display:flex; gap:6px; margin-top:16px;}
+  .s6 .chip{padding:8px 14px; border-radius:99px; font-size:10.5px; font-weight:800; background:#fff; color:#8E7FA8;}
+  .s6 .chip.active{background:#B9A6FF; color:#fff;}
+  .s6 .task{margin-top:16px; background:#fff; border-radius:20px; padding:13px 15px;}
+  .s6 .task b{font-size:12.5px; color:#5B4B6A;}
+  .s6 .task .meta{font-size:10.5px; color:#C87BAE; margin-top:4px; font-weight:700;}
+</style>
+
+<h1>StudySync — スタイル案 v2(もっと大胆に)</h1>
+<p class="lead">今回はブランド世界観そのものを変える案です。note風の編集的なレイアウトも1案入れています。</p>
+
+<div class="grid">
+  <div class="card s1">
+    <h2>① note風エディトリアル<small>白紙・明朝見出し・グリーンの差し色・下線タブ</small></h2>
+    <div class="in">
+      <div class="date">2026年8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 に開始予定</div>
+      <hr class="rule">
+      <div class="row"><span><b>68%</b> 今週の達成</span><span><b>12日</b> 連続学習</span><span>教科: <b>数学</b></span></div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><span class="dot"></span><div><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間・18:00まで</div></div></div>
+      <div class="task"><span class="dot"></span><div><b>英単語 Unit 12 暗記</b><div class="meta">英語・20:00まで</div></div></div>
+    </div>
+  </div>
+
+  <div class="card s2">
+    <h2>② ネオブルータリズム<small>極太枠線・ハードシャドウ・原色</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">14:32</div>
+      <div class="clock">数学の時間</div>
+      <div class="row">
+        <span class="pill accent">今週 68%</span>
+        <span class="pill">🔥 12日連続</span>
+        <span class="pill">数学 ×</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="card s3">
+    <h2>③ ダークアカデミア<small>深緑×金・明朝体・落ち着いた学術感</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="pill accent">今週 68%</span>
+        <span class="pill">12日連続</span>
+        <span class="pill">数学</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="card s4">
+    <h2>④ ビビッドポップ<small>大胆なグラデーション・丸みのある遊び心</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="pill accent">今週 68%</span>
+        <span class="pill">🔥 12日連続</span>
+        <span class="pill">数学 ×</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="card s5">
+    <h2>⑤ 和紙モダン<small>藍×朱・明朝見出し・角の立った和のUI</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="pill accent">今週 68%</span>
+        <span class="pill">12日連続</span>
+        <span class="pill">数学</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="card s6">
+    <h2>⑥ ソフトパステル<small>優しい配色・丸みたっぷり・親しみやすさ</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="pill accent">今週 68%</span>
+        <span class="pill">🔥 12日連続</span>
+        <span class="pill">数学 ×</span>
+      </div>
+      <div class="chips">
+        <span class="chip active">すべて</span>
+        <span class="chip">締切が近い順</span>
+        <span class="chip">完了</span>
+      </div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+</div>

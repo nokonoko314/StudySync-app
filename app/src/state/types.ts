@@ -45,6 +45,26 @@ export interface Task {
   reviewEnabled: boolean; // whether completing this task auto-schedules the next review
   reviewIntervalsDays: number[] | null; // per-task override; null = use app default
   generatedReviewTaskId: string | null; // id of the review task auto-created by completing this task, if any
+
+  // --- schema v2: timeline scheduling (mockup ホームのタイムライン) ---
+  scheduledStart: number | null; // epoch ms on the day timeline; null = 未設定プール
+  plannedMinutes: number;
+  completedWithoutTracking: boolean; // スワイプ等で計測せずに完了
+  carriedFrom: string | null; // yyyy-mm-dd, set when an unfinished task was carried over to the next day
+  // --- schema v2: forgetting-curve pacing ---
+  reviewPreset: ReviewPreset | null; // null = settings.defaultReviewPreset; ignored when reviewIntervalsDays is set
+  reviewBaseAt: number | null; // completion time of the original task; review due dates are counted from here
+}
+
+export type ReviewPreset = 'standard' | 'cram' | 'long' | 'exam';
+export type ReviewRating = 'again' | 'good' | 'easy';
+
+export interface GoogleCalendarSettings {
+  syncOn: boolean;
+  calendarIds: string[]; // calendars to show; empty = all visible calendars
+  exportOn: boolean; // write scheduled tasks to a "StudySync" calendar
+  frequency: 'open' | '15min' | 'manual';
+  lastSyncAt: number | null;
 }
 
 export type TimerStyle = 'ring' | 'digital' | 'minimal';
@@ -72,9 +92,24 @@ export interface AppSettings {
   wallpaper: WallpaperSettings;
   customColors: string[]; // user-picked colors, shared across every color picker in the app
   hiddenColors: string[]; // built-in preset colors the user has removed (also shared globally)
+
+  // --- schema v2 ---
+  defaultPlannedMinutes: number;
+  notifyLeadMinutes: number; // お知らせ before a scheduled task starts
+  carryOverEnabled: boolean;
+  timelineTickMinutes: 15 | 30 | 60;
+  defaultReviewPreset: ReviewPreset;
+  fontScale: 0.875 | 1 | 1.125 | 1.25;
+  durationUseHourMinute: boolean; // true: 1時間10分 / false: 70分
+  timerAmoledMode: boolean;
+  calendarScale: 0.9 | 1 | 1.15;
+  googleCalendar: GoogleCalendarSettings;
 }
 
+export const SCHEMA_VERSION = 2;
+
 export interface AppData {
+  schemaVersion?: number; // missing on data saved before v2
   subjects: Subject[];
   projects: GroupProject[];
   tasks: Task[];
@@ -109,4 +144,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   wallpaper: { mode: 'default', color: '#FBF6EF', photoDataUrl: null },
   customColors: [],
   hiddenColors: [],
+  defaultPlannedMinutes: 50,
+  notifyLeadMinutes: 5,
+  carryOverEnabled: true,
+  timelineTickMinutes: 60,
+  defaultReviewPreset: 'standard',
+  fontScale: 1,
+  durationUseHourMinute: true,
+  timerAmoledMode: false,
+  calendarScale: 1,
+  googleCalendar: { syncOn: false, calendarIds: [], exportOn: false, frequency: 'open', lastSyncAt: null },
 };

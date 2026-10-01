@@ -1,0 +1,129 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — シンプル&クール 10案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:640px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:22px; max-width:1400px; margin:0 auto;}
+  .scard{border-radius:var(--card-radius,14px); overflow:hidden; box-shadow:var(--card-shadow,0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04)); background:var(--bg,#fff);}
+  .scard .label{font-size:12.5px; font-weight:800; padding:11px 16px; background:var(--label-bg,#111); color:var(--label-color,#fff);}
+  .scard .label small{display:block; font-size:10px; font-weight:400; opacity:.7; margin-top:2px;}
+  .scard .in{padding:22px 20px;}
+  .scard .date{font-size:11px; color:var(--date-color,#9a9a9a); letter-spacing:.03em; font-weight:700;}
+  .scard .headline{font-weight:900; font-size:21px; color:var(--head-color,#111); margin:6px 0 18px; letter-spacing:-.01em;}
+  .scard .item{padding:12px 0; border-top:var(--rule,1px solid #EFEFEF);}
+  .scard .item:first-of-type{border-top:none;}
+  .scard .time{font-size:11px; font-weight:800; color:var(--time-color,#B0B0B0); font-family:var(--font-time,inherit);}
+  .scard .title{font-size:14px; font-weight:700; color:var(--head-color,#111); margin:5px 0 3px;}
+  .scard .meta{font-size:11px; color:var(--meta-color,#9a9a9a);}
+  .scard .meta b{color:var(--accent,#111); font-weight:700;}
+</style>
+
+<h1>StudySync — シンプル&クールな案 10選</h1>
+<p class="lead">いただいた画像のような「線も枠も最小限、時刻はテキストのみ」というトーンで10案作りました。タスクの所要時間はバラバラなので、時間軸(縦線・ドット)は使わず時刻をラベルとして添えるだけの構成に統一しています。</p>
+
+<div class="grid">
+
+  <div class="scard" style="--bg:#fff; --date-color:#9a9a9a; --head-color:#111; --time-color:#B0B0B0; --accent:#2F6FED;">
+    <div class="label" style="--label-bg:#111;">1. ノーカラー・クリーン<small>白黒基調+アクセント1色のみ</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#0E0E10; --date-color:#7A7A82; --head-color:#fff; --time-color:#5FF6C8; --meta-color:#8A8A92; --accent:#5FF6C8; --rule:1px solid #232326;">
+    <div class="label" style="--label-bg:#5FF6C8; --label-color:#0E0E10;">2. ダーク×ミントの静けさ<small>夜の学習向け、余白多め</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --date-color:#B08A5A; --head-color:#2B2620; --time-color:#B08A5A; --meta-color:#8A8272; --accent:#B08A5A; --rule:1px solid #F0ECE2;">
+    <div class="label" style="--label-bg:#2B2620;">3. 明朝見出し×細字<small>和文タイポで上品に</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline" style="font-family:'Shippori Mincho',serif; font-weight:800;">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F7F8FA; --card-shadow:none; --date-color:#8B92A8; --head-color:#1E2440; --time-color:#4C5EE8; --meta-color:#8B92A8; --accent:#4C5EE8; --rule:none;">
+    <div class="label" style="--label-bg:#1E2440;">4. カード分離・浮遊型<small>各タスクを独立した白カードに</small></div>
+    <div class="in">
+      <div class="item" style="background:#fff; border-radius:12px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,.05);"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div style="height:10px;"></div>
+      <div class="item" style="background:#fff; border-radius:12px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,.05);"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --date-color:#9a9a9a; --head-color:#111; --time-color:#111; --font-time:'Space Grotesk',sans-serif; --accent:#E23838; --rule:1px solid #111;">
+    <div class="label" style="--label-bg:#111;">5. モノクロ+レッドの警告差し色<small>締切だけ赤で強調</small></div>
+    <div class="in">
+      <div class="date">08.20 THU</div>
+      <div class="headline">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F4F1EA; --card-shadow:none; --date-color:#8A8272; --head-color:#2B2620; --time-color:#8A8272; --meta-color:#9A9282; --accent:#6E7F4E; --rule:1px dashed #DCD5C4;">
+    <div class="label" style="--label-bg:#6E7F4E;">6. 和紙グレージュ<small>紙のような落ち着いた背景色</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --date-color:#9a9a9a; --head-color:#111; --time-color:#B0B0B0; --accent:#111; --rule:none;">
+    <div class="label" style="--label-bg:#111;">7. 左揃えタイムライン数字<small>時刻を大きく主役にする</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item" style="display:flex; gap:14px; align-items:baseline;"><div class="time" style="font-size:20px; color:#111; width:52px;">14:00</div><div><div class="title" style="margin-top:0;">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div></div>
+      <div class="item" style="display:flex; gap:14px; align-items:baseline;"><div class="time" style="font-size:20px; color:#111; width:52px;">20:00</div><div><div class="title" style="margin-top:0;">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#171A21; --date-color:#6B7280; --head-color:#fff; --time-color:#7C93D6; --meta-color:#6B7280; --accent:#7C93D6; --rule:1px solid #262A33;">
+    <div class="label" style="--label-bg:#7C93D6;">8. スレートブルーの静音UI<small>グレーがかった青で落ち着いた印象</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item"><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item"><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --date-color:#9a9a9a; --head-color:#111; --time-color:#9a9a9a; --accent:#111; --rule:1px solid #F0F0F0;">
+    <div class="label" style="--label-bg:#111;">9. 右揃えタグ型<small>教科名を右端にタグとして整列</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item" style="display:flex; justify-content:space-between; align-items:center;"><div><div class="time">14:00</div><div class="title">積分の演習問題 第3章</div><div class="meta"><b>18:00まで</b></div></div><span style="font-size:10.5px; font-weight:800; color:#2F6FED; background:#EAF0FE; padding:4px 10px; border-radius:99px;">数学</span></div>
+      <div class="item" style="display:flex; justify-content:space-between; align-items:center;"><div><div class="time">20:00</div><div class="title">英単語 Unit 12 暗記</div><div class="meta">20:00まで</div></div><span style="font-size:10.5px; font-weight:800; color:#E0668C; background:#FDEEF3; padding:4px 10px; border-radius:99px;">英語</span></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#fff; --date-color:#9a9a9a; --head-color:#111; --time-color:#111; --accent:#111; --rule:none; --card-radius:0; --card-shadow:none;">
+    <div class="label" style="--label-bg:#111;">10. 罫線ノート風<small>方眼罫のような細い横線区切り</small></div>
+    <div class="in" style="background-image:linear-gradient(to bottom, transparent 39px, #F1F1F1 40px); background-size:100% 40px;">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="item" style="border-top:none; padding-top:4px;"><div class="time">14:00</div><div class="title" style="margin:4px 0 2px;">積分の演習問題 第3章</div><div class="meta">数学・<b>18:00まで</b></div></div>
+      <div class="item" style="border-top:none; padding-top:4px;"><div class="time">20:00</div><div class="title" style="margin:4px 0 2px;">英単語 Unit 12 暗記</div><div class="meta">英語・20:00まで</div></div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,138 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — クールな配色案 3選</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#EDE7DA; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:640px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; max-width:1200px; margin:0 auto;}
+  .card{border-radius:20px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.12);}
+  .card h2{font-size:13px; margin:0; padding:12px 16px; color:#fff; display:flex; flex-direction:column; gap:2px;}
+  .card h2 small{font-size:10.5px; font-weight:400; opacity:.8;}
+  .in{padding:18px;}
+  .date{font-size:11px; font-weight:700; letter-spacing:.04em;}
+  .headline{font-family:"Shippori Mincho",serif; font-weight:800; font-size:20px; margin:4px 0 12px;}
+  .week{display:flex; justify-content:space-between; margin-bottom:14px;}
+  .wd{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px;}
+  .wd .num{width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;}
+  .chips{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip{display:flex; align-items:center; gap:5px; border-radius:8px; padding:6px 9px; font-size:10.5px; font-weight:700;}
+  .taskcard{border-radius:10px; padding:10px 12px; border-left:3px solid; margin-bottom:8px;}
+  .taskcard b{font-size:12px; display:block;}
+  .taskcard span{font-size:10px; display:block; margin-top:3px;}
+  .btn{display:inline-block; padding:6px 13px; border-radius:99px; font-size:10.5px; font-weight:800; margin-top:2px;}
+
+  /* ① エレクトリックブルー */
+  .s1{background:#F5F8FF;}
+  .s1 h2{background:#3B82F6;}
+  .s1 .date{color:#2563EB;}
+  .s1 .headline{color:#0F172A;}
+  .s1 .wd .num{color:#0F172A;}
+  .s1 .wd.today .num{background:#3B82F6; color:#fff;}
+  .s1 .chip{background:#fff; color:#1E3A8A; box-shadow:0 1px 3px rgba(59,130,246,.15), 0 0 0 1px #DCE8FE;}
+  .s1 .chip.accent{background:linear-gradient(135deg,#60A5FA,#3B82F6); color:#fff;}
+  .s1 .taskcard{background:#fff; border-color:#3B82F6; box-shadow:0 1px 3px rgba(59,130,246,.12);}
+  .s1 .taskcard b{color:#0F172A;} .s1 .taskcard span{color:#5B7BAE;}
+  .s1 .btn{background:#3B82F6; color:#fff;}
+
+  /* ② ティール */
+  .s2{background:#F0FDFA;}
+  .s2 h2{background:#0D9488;}
+  .s2 .date{color:#0D9488;}
+  .s2 .headline{color:#134E4A;}
+  .s2 .wd .num{color:#134E4A;}
+  .s2 .wd.today .num{background:#0D9488; color:#fff;}
+  .s2 .chip{background:#fff; color:#0F5C54; box-shadow:0 1px 3px rgba(13,148,136,.15), 0 0 0 1px #CFF2ED;}
+  .s2 .chip.accent{background:linear-gradient(135deg,#2DD4BF,#0D9488); color:#fff;}
+  .s2 .taskcard{background:#fff; border-color:#0D9488; box-shadow:0 1px 3px rgba(13,148,136,.12);}
+  .s2 .taskcard b{color:#134E4A;} .s2 .taskcard span{color:#5C8A85;}
+  .s2 .btn{background:#0D9488; color:#fff;}
+
+  /* ③ アイスシアン + ネイビー(ダーク) */
+  .s3{background:#0B0B10;}
+  .s3 h2{background:#1E293B;}
+  .s3 .date{color:#7DD3FC;}
+  .s3 .headline{color:#F8FAFC;}
+  .s3 .wd .num{color:#94A3B8;}
+  .s3 .wd.today .num{background:#38BDF8; color:#0B0B10;}
+  .s3 .chip{background:#1E1E23; color:#BAE6FD; box-shadow:0 0 0 1px #26313F;}
+  .s3 .chip.accent{background:linear-gradient(135deg,#7DD3FC,#38BDF8); color:#0B0B10;}
+  .s3 .taskcard{background:#1E1E23; border-color:#38BDF8; box-shadow:0 0 0 1px #232830;}
+  .s3 .taskcard b{color:#F8FAFC;} .s3 .taskcard span{color:#94A3B8;}
+  .s3 .btn{background:#38BDF8; color:#0B0B10;}
+</style>
+
+<h1>StudySync — クールな配色案 3選</h1>
+<p class="lead">同じホーム画面の要素で比較できます。①エレクトリックブルー ②ティール ③アイスシアン×ネイビー(ダーク)</p>
+
+<div class="grid">
+
+  <div class="card s1">
+    <h2>① エレクトリックブルー<small>締まった印象、SaaS/Web系で定番の「信頼+先進性」トーン</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s2">
+    <h2>② ティール<small>青緑寄り、集中・学習系プロダクトに合う落ち着いたクールさ</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+  <div class="card s3">
+    <h2>③ アイスシアン×ネイビー<small>漆黒に近い背景+氷のようなシアン。宇宙/ロケット系の硬派な印象</small></h2>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">今日の予定</div>
+      <div class="week">
+        <div class="wd"><span>月</span><span class="num">17</span></div>
+        <div class="wd"><span>火</span><span class="num">18</span></div>
+        <div class="wd"><span>水</span><span class="num">19</span></div>
+        <div class="wd today"><span>木</span><span class="num">20</span></div>
+        <div class="wd"><span>金</span><span class="num">21</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip accent">今週 68%</span>
+        <span class="chip">🔥 12日連続</span>
+        <span class="chip">数学</span>
+      </div>
+      <div class="taskcard"><b>積分の演習問題 第3章</b><span>数学・14:00-14:50</span></div>
+      <span class="btn">＋ タスク作成</span>
+    </div>
+  </div>
+
+</div>

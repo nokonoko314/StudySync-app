@@ -1,0 +1,297 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — 自由配置タイムライン モックアップ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    font-family:"Noto Sans JP",-apple-system,sans-serif; background:#EDE7DA;
+    display:flex; align-items:flex-start; justify-content:center; padding:28px 12px 60px;
+  }
+  .note{max-width:390px; margin:0 auto 14px; text-align:center; font-size:12px; color:#8A8272; line-height:1.7;}
+  .phone{
+    width:390px; max-width:100%; background:#FEFCF8; border-radius:34px; overflow:hidden;
+    box-shadow:0 24px 60px -20px rgba(43,38,32,.35); border:1px solid #EFE9DB;
+    display:flex; flex-direction:column; height:780px;
+  }
+  .topbar{padding:16px 22px 4px; flex:none;}
+  .date{font-size:11px; color:#B08A5A; font-weight:700; letter-spacing:.04em; margin:0;}
+  .headline{font-family:"Shippori Mincho",serif; font-weight:800; font-size:24px; color:#2B2620; margin:4px 0 0;}
+
+  .pool-wrap{flex:none; padding:14px 22px 6px; border-bottom:1px solid #F0ECE2;}
+  .pool-label{font-size:10.5px; font-weight:800; color:#8A8272; letter-spacing:.03em; margin-bottom:8px;}
+  .pool{display:flex; flex-wrap:wrap; gap:8px; min-height:36px;}
+  .chip{
+    display:flex; align-items:center; gap:6px; background:#fff; border:1px solid #EFE9DB;
+    border-radius:8px; padding:7px 10px 7px 8px; font-size:11.5px; font-weight:700; color:#2B2620;
+    cursor:grab; touch-action:none; user-select:none; box-shadow:0 1px 2px rgba(43,38,32,.04);
+  }
+  .chip:active{cursor:grabbing;}
+  .chip .dot{width:7px; height:7px; border-radius:50%; flex:none; background:var(--c,#B08A5A);}
+  .chip .tag{font-size:9.5px; font-weight:700; color:#8A8272;}
+  .pool-empty{font-size:11px; color:#B7AF9E; padding:6px 2px;}
+
+  .hint{flex:none; font-size:10.5px; color:#B7AF9E; padding:8px 22px; line-height:1.6;}
+
+  .board-scroll{flex:1; overflow-y:auto; position:relative;}
+  .timeline-row{display:flex; padding:0 22px;}
+  .gutter{width:36px; flex:none; position:relative;}
+  .board{position:relative; flex:1; margin-left:10px;}
+  .hour-row{position:relative; height:56px; border-top:1px solid #F1EDE3;}
+  .hour-row:first-child{border-top:none;}
+  .hour-label{position:absolute; right:0; top:-6px; text-align:right; font-size:10px; color:#B7AF9E; font-weight:700; white-space:nowrap;}
+
+  .block{
+    position:absolute; left:0; right:0; background:#fff; border-radius:8px;
+    border-left:3px solid var(--c,#B08A5A); box-shadow:0 1px 3px rgba(43,38,32,.10), 0 0 0 1px #F1EDE3;
+    padding:7px 10px; touch-action:none; cursor:grab; overflow:hidden;
+  }
+  .block:active{cursor:grabbing;}
+  .block.dragging{opacity:.85; box-shadow:0 8px 20px rgba(43,38,32,.18);}
+  .block .b-title{font-size:12px; font-weight:700; color:#2B2620; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .block .b-time{font-size:10px; color:#8A8272; margin-top:2px; font-variant-numeric:tabular-nums;}
+  .block .b-close{
+    position:absolute; top:4px; right:5px; width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:#B7AF9E; font-size:11px; cursor:pointer;
+  }
+  .block .b-close:hover{background:#F4F0E6;}
+  .resize-handle{
+    position:absolute; left:0; right:0; bottom:0; height:10px; cursor:ns-resize;
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:2px;
+  }
+  .resize-handle::after{content:""; width:22px; height:3px; border-radius:2px; background:#E4DCC8;}
+  .block:hover .resize-handle::after{background:var(--c,#B08A5A);}
+
+  .ghost{
+    position:fixed; z-index:50; pointer-events:none; background:#fff; border:1px solid #EFE9DB;
+    border-left:3px solid var(--c,#B08A5A); border-radius:8px; padding:7px 10px; font-size:12px;
+    font-weight:700; color:#2B2620; box-shadow:0 10px 24px rgba(43,38,32,.22); opacity:.95;
+  }
+</style>
+
+<p class="note">未設定のタスクはチップとして表示されます。チップを下の時間軸に自由な位置までドラッグすると、その場所に配置されます(吸い付き・スナップなし)。配置後はブロック下端をドラッグすると長さ(所要時間)を変更でき、ブロック本体をドラッグすれば位置を動かせます。× で未設定に戻せます。</p>
+
+<div class="phone">
+  <div class="topbar">
+    <p class="date">8月20日(木)</p>
+    <h1 class="headline">今日の予定</h1>
+  </div>
+
+  <div class="pool-wrap">
+    <div class="pool-label">未設定のタスク</div>
+    <div class="pool" id="pool"></div>
+  </div>
+
+  <div class="hint">タスクをタイムラインへドラッグして時間を組み込めます</div>
+
+  <div class="board-scroll">
+    <div class="timeline-row">
+      <div class="gutter" id="gutter"></div>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PX_PER_MIN = 1;          // 1分 = 1px（60px = 1時間）
+const START_HOUR = 7;          // タイムライン開始
+const END_HOUR = 23;           // タイムライン終了
+const DEFAULT_MIN = 50;        // 新規配置時のデフォルト所要時間(分)
+const MIN_MIN = 15;            // 最短所要時間(分)
+
+const TASKS = [
+  { id:'t1', title:'積分の演習問題 第3章', subject:'数学', color:'#4C6FE0' },
+  { id:'t2', title:'英単語 Unit 12 暗記', subject:'英語', color:'#E0668C' },
+  { id:'t3', title:'化学 レポート提出', subject:'化学', color:'#5C9C6E' },
+  { id:'t4', title:'物理 力学まとめノート作成', subject:'物理', color:'#C9962E' },
+];
+
+const pool = document.getElementById('pool');
+const board = document.getElementById('board');
+const boardScroll = document.querySelector('.board-scroll');
+
+function renderPoolEmptyState(){
+  if(!pool.children.length){
+    const p = document.createElement('div');
+    p.className = 'pool-empty';
+    p.textContent = 'すべて配置済みです';
+    p.dataset.empty = '1';
+    pool.appendChild(p);
+  }
+}
+function clearPoolEmptyState(){
+  const e = pool.querySelector('[data-empty]');
+  if(e) e.remove();
+}
+
+function makeChip(task){
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.style.setProperty('--c', task.color);
+  chip.dataset.id = task.id;
+  chip.innerHTML = `<span class="dot"></span>${task.title}<span class="tag">${task.subject}</span>`;
+  chip.addEventListener('pointerdown', (e) => startDragFromPool(e, task, chip));
+  return chip;
+}
+
+TASKS.forEach(t => pool.appendChild(makeChip(t)));
+
+// ---- 時間軸グリッド生成 ----
+const gutter = document.getElementById('gutter');
+for(let h = START_HOUR; h < END_HOUR; h++){
+  const row = document.createElement('div');
+  row.className = 'hour-row';
+  board.appendChild(row);
+
+  const label = document.createElement('div');
+  label.className = 'hour-label';
+  label.style.top = ((h - START_HOUR) * 60 * PX_PER_MIN - 6) + 'px';
+  label.textContent = String(h).padStart(2,'0') + ':00';
+  gutter.appendChild(label);
+}
+const totalHeight = (END_HOUR - START_HOUR) * 60 * PX_PER_MIN;
+board.style.height = totalHeight + 'px';
+gutter.style.height = totalHeight + 'px';
+
+function minutesToLabel(totalMin){
+  const h = Math.floor(totalMin / 60);
+  const m = Math.round(totalMin % 60);
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+function topToStartMin(top){ return START_HOUR * 60 + top / PX_PER_MIN; }
+function durationLabel(min){ return `${Math.round(min)}分`; }
+
+let ghostEl = null;
+
+function startDragFromPool(e, task, chip){
+  e.preventDefault();
+  chip.setPointerCapture(e.pointerId);
+  const ghost = document.createElement('div');
+  ghost.className = 'ghost';
+  ghost.style.setProperty('--c', task.color);
+  ghost.textContent = task.title;
+  document.body.appendChild(ghost);
+  positionGhost(ghost, e.clientX, e.clientY);
+  ghostEl = ghost;
+
+  function onMove(ev){ positionGhost(ghost, ev.clientX, ev.clientY); }
+  function onUp(ev){
+    chip.releasePointerCapture(e.pointerId);
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    ghost.remove(); ghostEl = null;
+
+    const rect = board.getBoundingClientRect();
+    const overBoard = ev.clientX >= rect.left && ev.clientX <= rect.right &&
+                       ev.clientY >= rect.top - 40 && ev.clientY <= rect.bottom + 40;
+    if(overBoard){
+      let top = ev.clientY - rect.top - 14; // 指の少し上をブロック先頭にする
+      const maxTop = board.clientHeight - DEFAULT_MIN * PX_PER_MIN;
+      top = Math.max(0, Math.min(top, maxTop));
+      createBlock(task, top, DEFAULT_MIN * PX_PER_MIN);
+      chip.remove();
+      renderPoolEmptyState();
+    }
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+
+function positionGhost(ghost, x, y){
+  ghost.style.left = (x + 14) + 'px';
+  ghost.style.top = (y - 14) + 'px';
+}
+
+function createBlock(task, top, height){
+  clearPoolEmptyState();
+  const block = document.createElement('div');
+  block.className = 'block';
+  block.style.setProperty('--c', task.color);
+  block.style.top = top + 'px';
+  block.style.height = height + 'px';
+
+  const title = document.createElement('div');
+  title.className = 'b-title';
+  title.textContent = task.title;
+
+  const time = document.createElement('div');
+  time.className = 'b-time';
+
+  const close = document.createElement('div');
+  close.className = 'b-close';
+  close.textContent = '×';
+  close.addEventListener('pointerdown', (e) => e.stopPropagation());
+  close.addEventListener('click', () => {
+    block.remove();
+    clearPoolEmptyState();
+    pool.appendChild(makeChip(task));
+  });
+
+  const handle = document.createElement('div');
+  handle.className = 'resize-handle';
+
+  block.append(title, time, close, handle);
+  board.appendChild(block);
+
+  function updateTimeLabel(){
+    const startMin = topToStartMin(parseFloat(block.style.top));
+    const h = parseFloat(block.style.height) / PX_PER_MIN;
+    const endMin = startMin + h;
+    time.textContent = `${minutesToLabel(startMin)} - ${minutesToLabel(endMin)} (${durationLabel(h)})`;
+  }
+  updateTimeLabel();
+
+  // 本体ドラッグ = 自由に位置移動（スナップなし）
+  block.addEventListener('pointerdown', (e) => {
+    if(e.target === handle) return;
+    e.preventDefault();
+    block.setPointerCapture(e.pointerId);
+    block.classList.add('dragging');
+    const startY = e.clientY;
+    const startTop = parseFloat(block.style.top);
+    function onMove(ev){
+      let newTop = startTop + (ev.clientY - startY);
+      const maxTop = board.clientHeight - parseFloat(block.style.height);
+      newTop = Math.max(0, Math.min(newTop, maxTop));
+      block.style.top = newTop + 'px';
+      updateTimeLabel();
+    }
+    function onUp(ev){
+      block.releasePointerCapture(e.pointerId);
+      block.classList.remove('dragging');
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+
+  // 端をドラッグ = 長さ（時間）を変更
+  handle.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    const startY = e.clientY;
+    const startHeight = parseFloat(block.style.height);
+    const top = parseFloat(block.style.top);
+    function onMove(ev){
+      let newHeight = startHeight + (ev.clientY - startY);
+      const maxHeight = board.clientHeight - top;
+      newHeight = Math.max(MIN_MIN * PX_PER_MIN, Math.min(newHeight, maxHeight));
+      block.style.height = newHeight + 'px';
+      updateTimeLabel();
+    }
+    function onUp(){
+      handle.releasePointerCapture(e.pointerId);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+}
+
+// デモ: 最初から1件だけ時間軸に置いた状態にしておく
+createBlock(TASKS[0], 7 * 60 * PX_PER_MIN, DEFAULT_MIN * PX_PER_MIN);
+pool.querySelector(`[data-id="t1"]`)?.remove();
+</script>

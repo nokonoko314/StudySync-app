@@ -1,0 +1,104 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>StudySync — Dribbble参考スタイル案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&family=Space+Grotesk:wght@500;700&display=swap');
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Noto Sans JP",-apple-system,sans-serif; background:#E4E0D8; padding:32px 16px 80px;}
+  h1{text-align:center; font-size:20px; margin:0 0 6px;}
+  p.lead{text-align:center; color:#6E6678; font-size:13px; margin:0 0 32px; max-width:640px; margin-left:auto; margin-right:auto;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:22px; max-width:1300px; margin:0 auto;}
+  .scard{border-radius:var(--card-radius,16px); overflow:hidden; box-shadow:var(--card-shadow,0 8px 22px rgba(0,0,0,.10)); background:var(--bg,#fff); position:relative;}
+  .scard .label{font-size:12.5px; font-weight:800; padding:11px 16px; background:var(--label-bg,#16151A); color:var(--label-color,#fff);}
+  .scard .label small{display:block; font-size:10px; font-weight:400; opacity:.75; margin-top:2px;}
+  .scard .in{padding:20px; position:relative; z-index:1;}
+  .scard .date{font-size:11px; color:var(--date-color,#666); letter-spacing:.04em; font-weight:var(--date-weight,700);}
+  .scard .headline{font-family:var(--font-head,inherit); font-weight:var(--head-weight,800); font-size:var(--head-size,24px); color:var(--head-color,#111); margin:7px 0 2px; letter-spacing:var(--head-ls,-0.01em); line-height:1.25;}
+  .scard .clock{font-family:var(--font-clock,inherit); font-size:13px; color:var(--clock-color,#555); margin-top:2px; font-weight:var(--clock-weight,600);}
+  .scard .row{display:flex; gap:7px; margin-top:14px; flex-wrap:wrap;}
+  .scard .pill{padding:6px 11px; border-radius:var(--pill-radius,99px); font-size:10.5px; font-weight:800; background:var(--pill-bg,#eee); color:var(--pill-color,#333); border:var(--pill-border,none);}
+  .scard .pill.accent{background:var(--pill-accent-bg,#333); color:var(--pill-accent-color,#fff);}
+  .scard .chips{display:flex; gap:6px; margin-top:16px;}
+  .scard .chip{padding:7px 13px; border-radius:var(--chip-radius,99px); font-size:10.5px; font-weight:800; background:var(--chip-bg,#eee); color:var(--chip-color,#777); border:var(--chip-border,none);}
+  .scard .chip.active{background:var(--chip-active-bg,#111); color:var(--chip-active-color,#fff);}
+  .scard .task{margin-top:16px; background:var(--task-bg,#fff); border-radius:var(--task-radius,14px); padding:12px 14px; border:var(--task-border,none); box-shadow:var(--task-shadow,none);}
+  .scard .task b{font-size:12.5px; color:var(--task-color,#111); font-weight:800;}
+  .scard .task .meta{font-size:10.5px; color:var(--task-meta-color,#888); margin-top:4px; font-weight:600;}
+  .ring{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; margin-top:10px;}
+</style>
+
+<h1>StudySync — 参考サイトから発想した5案</h1>
+<p class="lead">DribbbleでStudy/学習アプリ系のUIを見てきました。人気の高かった構成傾向をもとに、StudySync用にオリジナルで再構成した5案です（他者の作品をそのまま複製せず、配色・タイポ・レイアウト思想のみを参考にしています）。</p>
+
+<div class="grid">
+
+  <div class="scard" style="--bg:#111; --font-head:'Space Grotesk',sans-serif; --date-color:#B8FF3C; --head-color:#fff; --head-size:30px; --head-weight:900; --clock-color:#B8FF3C; --pill-bg:#1E1E1E; --pill-color:#B8FF3C; --pill-accent-bg:#B8FF3C; --pill-accent-color:#111; --chip-bg:#1E1E1E; --chip-color:#999; --chip-active-bg:#B8FF3C; --chip-active-color:#111; --task-bg:#1E1E1E; --task-color:#fff; --task-meta-color:#999; --pill-radius:6px; --chip-radius:6px; --card-radius:8px;">
+    <div class="label" style="--label-bg:#B8FF3C; --label-color:#111;">A. 大胆ナンバー訴求型<small>参考: 蛍光ライム×極太数字の「実績を見せる」系スタジーアプリ</small></div>
+    <div class="in">
+      <div class="date">2026.08.20 THU</div>
+      <div class="headline">今日のタスク 3件</div>
+      <div class="clock">連続学習 12日目</div>
+      <div class="row"><span class="pill accent">68%</span><span class="pill">1h 学習済</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#1A1230; --date-color:#B9A6FF; --head-color:#fff; --clock-color:#8FE0D0; --pill-bg:#2A1F4A; --pill-color:#B9A6FF; --pill-accent-bg:linear-gradient(135deg,#8B6EFF,#5B4BFF); --pill-accent-color:#fff; --chip-bg:#2A1F4A; --chip-color:#8F84B0; --chip-active-bg:#8B6EFF; --chip-active-color:#fff; --task-bg:#241A44; --task-color:#fff; --task-meta-color:#8F84B0; --card-radius:18px;">
+    <div class="label" style="--label-bg:#8B6EFF;">B. ゲーミフィケーション・ダッシュボード<small>参考: ダーク紫×大きな%カードでゲーム感を出す学習アプリ</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="ring" style="background:conic-gradient(#8B6EFF 0 68%, rgba(255,255,255,.12) 0); color:#fff;">68%</span>
+      </div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">🔥 12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:#F7F8FC; --card-shadow:0 1px 3px rgba(0,0,0,.06), 0 0 0 1px #E9EBF3; --date-color:#8B92A8; --head-color:#1E2440; --clock-color:#4C5EE8; --pill-bg:#EEF0FA; --pill-color:#4C5EE8; --pill-accent-bg:#4C5EE8; --pill-accent-color:#fff; --chip-bg:#EEF0FA; --chip-color:#8B92A8; --chip-active-bg:#1E2440; --chip-active-color:#fff; --task-bg:#fff; --task-border:1px solid #EEF0FA; --pill-radius:10px; --chip-radius:10px; --card-radius:16px;">
+    <div class="label" style="--label-bg:#1E2440;">C. AIアシスタント風クリーン<small>参考: 白基調+インディゴのミニマルな「学習コーチ」系アプリ</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">🔥 12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task" style="display:flex; gap:10px; align-items:center;">
+        <span style="width:30px;height:30px;border-radius:9px;background:#4C5EE8;flex:none;"></span>
+        <div><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:linear-gradient(160deg,#F0EAFB,#FBF1F6); --date-color:#8A76C2; --head-color:#3E2E5C; --clock-color:#B472A0; --pill-bg:rgba(255,255,255,.8); --pill-color:#6E5A9C; --pill-accent-bg:linear-gradient(135deg,#B48CF0,#F0A0C8); --pill-accent-color:#fff; --chip-bg:rgba(255,255,255,.8); --chip-color:#6E5A9C; --chip-active-bg:#6E5A9C; --chip-active-color:#fff; --task-bg:rgba(255,255,255,.85); --task-shadow:0 6px 16px rgba(150,120,200,.25); --card-radius:22px;">
+    <div class="label" style="--label-bg:#6E5A9C;">D. ラベンダー・プログレスリング<small>参考: パステル紫のグラデーションと円形プログレスが主役のダッシュボード</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row">
+        <span class="ring" style="background:conic-gradient(#B48CF0 0 68%, rgba(110,90,156,.15) 0); color:#3E2E5C;">68%</span>
+      </div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">🔥 12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+  <div class="scard" style="--bg:radial-gradient(circle at 30% 20%,rgba(90,120,220,.35),transparent 50%),#0B1226; --date-color:#7C93D6; --head-color:#fff; --clock-color:#6FE3C9; --pill-bg:rgba(124,147,214,.15); --pill-color:#A8B9EC; --pill-border:1px solid rgba(124,147,214,.35); --pill-accent-bg:#6FE3C9; --pill-accent-color:#0B1226; --chip-bg:rgba(255,255,255,.06); --chip-color:#7C93D6; --chip-active-bg:#6FE3C9; --chip-active-color:#0B1226; --task-bg:rgba(124,147,214,.1); --task-border:1px solid rgba(124,147,214,.25); --task-color:#fff; --task-meta-color:#7C93D6; --pill-radius:8px; --chip-radius:8px; --card-radius:16px;">
+    <div class="label" style="--label-bg:#6FE3C9; --label-color:#0B1226;">E. 夜の集中ルーム風<small>参考: 深紺×淡いグロー、静かに集中できる「フォーカスルーム」系アプリ</small></div>
+    <div class="in">
+      <div class="date">8月20日(木)</div>
+      <div class="headline">数学の時間</div>
+      <div class="clock">14:32 〜</div>
+      <div class="row"><span class="pill accent">今週 68%</span><span class="pill">🔥 12日連続</span><span class="pill">数学</span></div>
+      <div class="chips"><span class="chip active">すべて</span><span class="chip">締切が近い順</span><span class="chip">完了</span></div>
+      <div class="task"><b>積分の演習問題 第3章</b><div class="meta">数学・あと1時間</div></div>
+    </div>
+  </div>
+
+</div>

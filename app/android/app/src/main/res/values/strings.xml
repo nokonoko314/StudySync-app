@@ -4,4 +4,5 @@
     <string name="title_activity_main">StudySync</string>
     <string name="package_name">com.studysync.app</string>
     <string name="custom_url_scheme">com.studysync.app</string>
+    <string name="widget_description">今日のタスク数と次のタスクを表示します</string>
 </resources>
