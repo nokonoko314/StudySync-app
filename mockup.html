@@ -1762,7 +1762,7 @@ body{
             const listeners = [];
             const st = {
               connected:!APP_MODE, email:'study.sync.demo@gmail.com', syncOn:!APP_MODE,
-              calendars:{ personal:true, school:true, holidays:true },
+              calendars:APP_MODE ? {} : { personal:true, school:true, holidays:true }, exportCalId:null,
               exportOn:false, frequency:'open', lastSync:new Date(),
               calendarsInfo:GOOGLE_CALENDARS, events:GOOGLE_EVENTS,
               set(patch){ Object.assign(st, patch); listeners.forEach(fn => fn(st)); },
@@ -1770,6 +1770,7 @@ body{
             };
             return st;
           })();
+          if(APP_MODE) Object.keys(GOOGLE_CALENDARS).forEach(k => delete GOOGLE_CALENDARS[k]);
           window.StudySyncGoogle.onChange(() => renderExternalEvents());
 
           // ---- アプリ版: 端末への保存と復元 ----
@@ -1784,7 +1785,7 @@ body{
               localStorage.setItem(STORE_KEY, JSON.stringify({
                 savedDay:todayZeroMs(), uid, scheduledTasks, poolTasks, subjects:SUBJECT_COLORS,
                 archived:[...ARCHIVED_SUBJECTS], projects:PROJECTS,
-                google:{ connected:g.connected, email:g.email, syncOn:g.syncOn, calendars:g.calendars, exportOn:g.exportOn, frequency:g.frequency },
+                google:{ connected:g.connected, email:g.email, syncOn:g.syncOn, calendars:g.calendars, exportOn:g.exportOn, frequency:g.frequency, exportCalId:g.exportCalId, lastSync:g.lastSync },
               }));
             } catch(_){ /* 保存できない環境では何もしない */ }
             syncWidget();
@@ -2288,13 +2289,13 @@ body{
             board.querySelectorAll('.ext-block').forEach(el => el.remove());
             const g = window.StudySyncGoogle;
             if(!g.connected || !g.syncOn) return;
-            GOOGLE_EVENTS.filter(ev => ev.day === viewDay && g.calendars[ev.cal]).forEach(ev => {
+            GOOGLE_EVENTS.filter(ev => ev.day === viewDay && !ev.allDay && g.calendars[ev.cal] && GOOGLE_CALENDARS[ev.cal]).forEach(ev => {
               const el = document.createElement('div');
               el.className = 'ext-block';
               el.style.top = minToTop(ev.start) + 'px';
               el.style.height = (ev.dur * PX_PER_MIN) + 'px';
               el.style.setProperty('--c', GOOGLE_CALENDARS[ev.cal].color);
-              el.innerHTML = `<span class="ext-title">${ev.title}</span><span class="ext-meta">${minutesToLabel(ev.start)} - ${minutesToLabel(ev.start + ev.dur)}・${GOOGLE_CALENDARS[ev.cal].name}</span>`;
+              el.innerHTML = `<span class="ext-title">${esc(ev.title)}</span><span class="ext-meta">${minutesToLabel(ev.start)} - ${minutesToLabel(ev.start + ev.dur)}・${esc(GOOGLE_CALENDARS[ev.cal].name)}</span>`;
               el.setAttribute('aria-label', `Googleカレンダーの予定: ${ev.title} ${minutesToLabel(ev.start)}から`);
               board.appendChild(el);
             });
@@ -4157,6 +4158,13 @@ body{
             dayRecords,
             subjects(){ return activeSubjects().map(name => ({ name, color:SUBJECT_COLORS[name] })); },
             archivedSubjects(){ return [...ARCHIVED_SUBJECTS].map(name => ({ name, color:SUBJECT_COLORS[name] })); },
+            // Googleカレンダーへ書き出す、時間軸に置いたタスク(fromDay〜toDay)
+            exportableTasks(fromDay, toDay){
+              return scheduledTasks
+                .filter(t => { const d = Math.floor(t.startMin / DAY_MIN); return d >= fromDay && d <= toDay; })
+                .map(t => ({ id:t.id, title:t.title, subject:t.subject, startMin:t.startMin, dur:t.dur, done:t.status === 'completed', review:!!t.isReview }));
+            },
+            renderExternalEvents(){ renderExternalEvents(); },
             reorderSubjects(names){
               const entries = Object.entries(SUBJECT_COLORS);
               const rest = entries.filter(([n]) => !names.includes(n));
@@ -4625,17 +4633,23 @@ body{
               function googleEventsHtml(dayIndex){
                 const g = window.StudySyncGoogle;
                 if(!g.connected || !g.syncOn) return '';
-                const evs = g.events.filter(e => e.day === dayIndex && g.calendars[e.cal]);
+                const evs = g.events.filter(e => e.day === dayIndex && g.calendars[e.cal] && g.calendarsInfo[e.cal])
+                  .sort((a, b) => (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || a.start - b.start);
                 if(!evs.length) return '';
                 const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
-                return `<p class="cd-section">Googleカレンダーの予定</p><ul class="cd-tasks">${evs.map(e => `<li style="background:transparent; box-shadow:inset 0 0 0 1.5px ${g.calendarsInfo[e.cal].color}"><span class="time">${hm(e.start)}–${hm(e.start + e.dur)}</span><span class="ttl">${escapeHtml(e.title)}<span style="--sc:${g.calendarsInfo[e.cal].color}">${g.calendarsInfo[e.cal].name}</span></span><span class="cd-badge plan">予定</span></li>`).join('')}</ul>`;
+                return `<p class="cd-section">Googleカレンダーの予定</p><ul class="cd-tasks">${evs.map(e => { const info = g.calendarsInfo[e.cal]; return `<li style="background:transparent; box-shadow:inset 0 0 0 1.5px ${info.color}"><span class="time">${e.allDay ? '終日' : `${hm(e.start)}–${hm(Math.min(e.start + e.dur, 1440))}`}</span><span class="ttl">${escapeHtml(e.title)}<span style="--sc:${info.color}">${escapeHtml(info.name)}</span></span><span class="cd-badge plan">予定</span></li>`; }).join('')}</ul>`;
               }
               function applyGoogle(){
                 const g = window.StudySyncGoogle;
                 const hm = d => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
                 // アプリ版ではカレンダー同期はまだ使えないので、「今後対応」と分かる表示にする
-                document.getElementById('calSyncLabel').textContent = APP ? 'Googleカレンダー同期(今後対応)'
-                  : !g.connected ? 'Googleカレンダーと連携する' : g.syncOn ? `Googleカレンダーと同期済み・${hm(g.lastSync)}` : 'Googleカレンダー同期はオフ';
+                const gc = window.StudySyncCalendar;
+                const last = g.lastSync ? new Date(g.lastSync) : null;
+                document.getElementById('calSyncLabel').textContent = !g.connected ? 'Googleカレンダーと連携する'
+                  : gc && gc.error ? 'Googleカレンダー: 同期できませんでした'
+                  : gc && gc.status === 'syncing' ? 'Googleカレンダーと同期中…'
+                  : !g.syncOn ? 'Googleカレンダーの表示はオフ'
+                  : last && !isNaN(last) ? `Googleカレンダーと同期済み・${hm(last)}` : 'Googleカレンダーと連携中';
                 document.getElementById('calSyncPill').classList.toggle('off', !g.connected || !g.syncOn);
                 document.querySelectorAll('#cal-month-view .cal-bar.synced').forEach(b => {
                   const cal = b.classList.contains('holiday') ? 'holidays' : 'personal';
@@ -5543,7 +5557,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.10.1';
+            const APP_VERSION = '1.11.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6037,7 +6051,8 @@ body{
                   <button type="button" class="gg-signin" disabled aria-disabled="true"><span class="gg-g" aria-hidden="true">G</span>Googleでログイン(準備中)</button>`);
               },
               gcal(el){
-                const g = window.StudySyncGoogle;
+                const g = window.StudySyncGoogle, GC = window.StudySyncCalendar;
+                if(GC && GC.available){ gcalSheet(el); return; }
                 el.insertAdjacentHTML('beforeend', `
                   <div class="st-soon-card"><span class="st-soon-badge">今後対応</span><p>Googleカレンダー同期は、Googleアカウント連携と一緒に使えるようになります。</p></div>
                   <p class="st-label">同期でできること</p>
@@ -6066,7 +6081,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>文字を全体に一段大きく(以前の標準は「小」に)、ホーム上部も文字の大きさの設定に対応、未設定が多いときはスクロールで表示(長押しでつまむ)、教科を3本線で並び替え</span></li>
+                  <li><b>${APP_VERSION}</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
+                  <li><b>1.10.1</b><span>文字を全体に一段大きく(以前の標準は「小」に)、ホーム上部も文字の大きさの設定に対応、未設定が多いときはスクロールで表示(長押しでつまむ)、教科を3本線で並び替え</span></li>
                   <li><b>1.10.0</b><span>ウィジェットに教科の頭文字、新しいウィジェット3種類(次の予定・今日の進み具合・今週の勉強時間)、予定の開始・終了時刻に合わせて自動で更新</span></li>
                   <li><b>1.9.2</b><span>未設定のタスクをタップで編集・削除できるように(時間を指定すると時間軸へ)、削除などのお知らせはほかの場所に触れるとすぐ消えるように</span></li>
                   <li><b>1.9.1</b><span>ウィジェットで今日の予定をすべてスクロールして見られるように、未設定のタスクも表示</span></li>
@@ -6087,6 +6103,69 @@ body{
                   <li><b>1.0.0</b><span>自動配置、プロジェクトの編集、画面外のタスクのお知らせ</span></li></ul>`);
               },
             };
+
+            // ---- Googleカレンダー同期の設定シート(アプリ版) ----
+            let gcalEl = null, gcalSubscribed = false;
+            function gcalSheet(el){
+              gcalEl = el;
+              const g = window.StudySyncGoogle, GC = window.StudySyncCalendar;
+              // 同期の状態が変わったら、開いている間は描き直す(同期の処理はこの画面より後に読み込まれるので、初めて開いたときに登録)
+              if(!gcalSubscribed){ gcalSubscribed = true; GC.onChange(() => { if(gcalEl && gcalEl.isConnected) gcalSheet(gcalEl); }); }
+              const draw = () => {
+                if(!gcalEl || !gcalEl.isConnected) return;
+                const last = g.lastSync ? new Date(g.lastSync) : null;
+                const hm = d => `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                const sw = (id, title, sub, on) => `<div class="st-option" style="cursor:default"><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span><button type="button" class="st-toggle" role="switch" ${id} aria-checked="${on}" aria-label="${title}" style="margin-left:auto"></button></div>`;
+                const err = GC.error ? `<div class="st-callout"><p>${esc(GC.error)}</p>${GC.needsConsent ? '<button type="button" class="st-primary" id="gcReconsent">もう一度許可する</button>' : ''}</div>` : '';
+                if(!g.connected){
+                  gcalEl.innerHTML = `<p class="st-lead">Googleカレンダーの予定(学校・塾・バイトなど)を、ホームの時間軸とカレンダーに表示します。空いている時間が分かるので、勉強の予定を入れやすくなります。</p>
+                    <ul class="gg-benefits"><li>予定は表示するだけで、Googleカレンダーの予定を書き換えることはありません</li><li>希望すれば、StudySyncの予定を「StudySync」カレンダーに書き出せます</li></ul>
+                    ${err}<button type="button" class="st-primary" id="gcConnect">Googleカレンダーと連携する</button>
+                    <p class="st-note">次の画面で、Googleカレンダーの閲覧を許可してください。</p>`;
+                  gcalEl.querySelector('#gcConnect').addEventListener('click', async e => {
+                    e.currentTarget.disabled = true; e.currentTarget.textContent = '連携しています…';
+                    const ok = await GC.connect();
+                    if(ok) showToast('Googleカレンダーと連携しました');
+                    draw();
+                  });
+                  gcalEl.querySelector('#gcReconsent')?.addEventListener('click', () => GC.connect().then(draw));
+                  return;
+                }
+                const cals = Object.entries(g.calendarsInfo).sort((a, b) => (b[1].primary ? 1 : 0) - (a[1].primary ? 1 : 0));
+                gcalEl.innerHTML = `
+                  <div class="gg-account"><span class="gg-avatar" aria-hidden="true" style="background:var(--indigo)">${CAL_SVG}</span><span><b>${GC.status === 'syncing' ? '同期しています…' : GC.error ? '同期できませんでした' : '連携中'}</b><small>${last && !isNaN(last) ? `最終同期 ${hm(last)}` : 'まだ同期していません'}</small></span>
+                    <button type="button" class="st-secondary" id="gcSyncNow" style="width:auto; margin:0 0 0 auto; padding:0 14px; min-height:36px" ${GC.status === 'syncing' ? 'disabled' : ''}>今すぐ同期</button></div>
+                  ${err}
+                  <p class="st-label">予定の表示</p>
+                  <div class="st-options">${sw('id="gcShow"', 'Googleカレンダーの予定を表示', 'ホームの時間軸とカレンダーに表示します', !!g.syncOn)}</div>
+                  <div id="gcCals" ${g.syncOn ? '' : 'hidden'}>
+                    <p class="st-label">表示するカレンダー</p>
+                    <div class="st-options">${cals.length ? cals.map(([id, c]) => `<div class="st-option" style="cursor:default"><span class="gg-cal-dot" style="background:${esc(c.color)}"></span><span><b>${esc(c.name)}</b></span><button type="button" class="st-toggle" role="switch" data-cal="${esc(id)}" aria-checked="${!!g.calendars[id]}" aria-label="${esc(c.name)}を表示" style="margin-left:auto"></button></div>`).join('')
+                      : '<div class="st-option" style="cursor:default"><span><small>同期すると、ここにカレンダーが並びます</small></span></div>'}</div>
+                  </div>
+                  <p class="st-label">書き出し</p>
+                  <div class="st-options">${sw('id="gcExport"', 'StudySyncの予定を書き出す', '時間軸に置いたタスクを、Googleカレンダーの「StudySync」カレンダーに追加します', !!g.exportOn)}</div>
+                  <p class="st-note">過去7日〜60日先の予定が対象です。アプリを開いたとき、戻ったとき、開いている間は15分ごとに同期します。書き出した予定はStudySyncで変更してください(Googleカレンダー側で変えても、次の同期で元に戻ります)。</p>
+                  <button type="button" class="st-secondary danger" id="gcDisconnect">連携を解除</button>`;
+                gcalEl.querySelector('#gcSyncNow').addEventListener('click', () => GC.syncNow());
+                gcalEl.querySelector('#gcReconsent')?.addEventListener('click', () => GC.connect());
+                gcalEl.querySelector('#gcShow').addEventListener('click', () => GC.setShow(!g.syncOn));
+                gcalEl.querySelectorAll('[data-cal]').forEach(b => b.addEventListener('click', () => GC.setCalendar(b.dataset.cal, !g.calendars[b.dataset.cal])));
+                gcalEl.querySelector('#gcExport').addEventListener('click', async e => {
+                  const turnOn = !g.exportOn;
+                  e.currentTarget.disabled = true;
+                  const ok = await GC.setExport(turnOn);
+                  if(ok) showToast(turnOn ? '「StudySync」カレンダーへの書き出しを始めました' : '書き出しを止めました(書き出し済みの予定はそのまま残ります)');
+                  draw();
+                });
+                gcalEl.querySelector('#gcDisconnect').addEventListener('click', () => {
+                  GC.disconnect();
+                  showToast('連携を解除しました。許可の取り消しは Google アカウントの「サードパーティ製のアプリとサービス」から行えます');
+                });
+              };
+              draw();
+            }
+            const CAL_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
 
             // ---- 一覧 ----
             const IC = {
@@ -6135,7 +6214,9 @@ body{
                 window.StudySyncCloud && window.StudySyncCloud.available
                   ? { key:'google', icon:'link', tint:'var(--coral)', title:'Googleアカウント連携', sub:'データの保存と、ほかの端末との同期', value:!window.StudySyncCloud.user ? '未連携' : window.StudySyncCloud.error ? '保存できていません' : window.StudySyncCloud.lastSync ? '同期済み' : '連携済み' }
                   : { key:'google', icon:'link', tint:'var(--coral)', title:'Googleアカウント連携', sub:'データの保存と、ほかの端末との同期', soon:true },
-                { key:'gcal', icon:'cal', tint:'var(--indigo)', title:'Googleカレンダー同期', sub:'予定をホームとカレンダーに表示', soon:true },
+                window.StudySyncCalendar && window.StudySyncCalendar.available
+                  ? { key:'gcal', icon:'cal', tint:'var(--indigo)', title:'Googleカレンダー同期', sub:'予定をホームとカレンダーに表示', value:!window.StudySyncGoogle.connected ? '未連携' : window.StudySyncCalendar.error ? '同期できていません' : '連携中' }
+                  : { key:'gcal', icon:'cal', tint:'var(--indigo)', title:'Googleカレンダー同期', sub:'予定をホームとカレンダーに表示', soon:true },
               ]],
               ['データ', [
                 ...(home.hasSamples() ? [{ key:'samples', icon:'trash', tint:'var(--ink-soft)', title:'見本を削除', sub:'最初に入っている「見本:」のタスクとプロジェクト' }] : []),
@@ -7203,5 +7284,253 @@ function undoAction(scopeId){
               setInterval(() => push(false), 10000);
               document.addEventListener('visibilitychange', () => { if(document.hidden) push(false); });
             }
+          })();
+          </script>
+
+          <!-- Googleカレンダー同期(アプリ版のみ)。予定をホームの時間軸とカレンダーに表示し、希望すれば時間軸のタスクを「StudySync」カレンダーへ書き出す -->
+          <script>
+          (function(){
+            const P = window.Capacitor && window.Capacitor.Plugins;
+            const GCA = P && P.GoogleCalendarAuth;
+            const g = window.StudySyncGoogle, home = window.StudySyncHome;
+            const API = 'https://www.googleapis.com/calendar/v3';
+            const SC_READ = 'https://www.googleapis.com/auth/calendar.readonly';
+            // 書き出しは「このアプリが作ったカレンダーだけ」を触れる権限にとどめる
+            const SC_APP = 'https://www.googleapis.com/auth/calendar.app.created';
+            const CACHE_KEY = 'studysync.gcal.cache';
+            const DAY = 86400000, PAST_DAYS = 7, FUTURE_DAYS = 60;
+            const listeners = [];
+            let busy = false, again = false, lastExportSig = '', raw = [];
+            const st = {
+              available:!!(window.__STUDYSYNC_APP && GCA),
+              status:'idle', error:null, needsConsent:false,
+              connect, disconnect, syncNow:() => sync(true), setExport, setCalendar, setShow,
+              onChange(fn){ listeners.push(fn); },
+            };
+            window.StudySyncCalendar = st;
+            if(!st.available) return;
+            const notify = () => { listeners.forEach(fn => { try { fn(st); } catch(_){ /* 閉じた画面は無視 */ } }); g.set({}); };
+            const email = () => (window.StudySyncCloud && window.StudySyncCloud.user && window.StudySyncCloud.user.email) || undefined;
+            const base = () => home.baseDate.getTime();
+            const dayOf = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return Math.round((d.getTime() - base()) / DAY); };
+
+            // ---- 予定を、時間軸で使う形(日・開始分・長さ)にする。日付をまたぐ予定は日ごとに分ける ----
+            function apply(){
+              const info = g.calendarsInfo, events = g.events;
+              events.length = 0;
+              raw.forEach(r => {
+                if(!info[r.cal]) return;
+                if(r.allDay){
+                  for(let d = dayOf(r.s); d < dayOf(r.e); d++) events.push({ day:d, allDay:true, start:0, dur:0, title:r.t, cal:r.cal });
+                  return;
+                }
+                for(let d = dayOf(r.s); d <= dayOf(r.e - 1); d++){
+                  const dayStart = base() + d * DAY;
+                  const s = Math.max(r.s, dayStart), e = Math.min(r.e, dayStart + DAY);
+                  if(e <= s) continue;
+                  events.push({ day:d, start:Math.round((s - dayStart) / 60000), dur:Math.max(15, Math.round((e - s) / 60000)), title:r.t, cal:r.cal });
+                }
+              });
+            }
+            function saveCache(){ try { localStorage.setItem(CACHE_KEY, JSON.stringify({ info:g.calendarsInfo, raw })); } catch(_){ /* 保存できない環境 */ } }
+            function loadCache(){
+              try {
+                const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+                if(!c) return;
+                Object.keys(g.calendarsInfo).forEach(k => delete g.calendarsInfo[k]);
+                Object.assign(g.calendarsInfo, c.info || {});
+                raw = c.raw || [];
+                apply();
+              } catch(_){ /* 壊れていたら次の同期で作り直す */ }
+            }
+
+            function friendly(e){
+              const code = e && (e.code || e.status), m = String((e && e.message) || e || '');
+              if(code === 'NEEDS_CONSENT' || code === 401) return 'Googleカレンダーの許可が切れています。「もう一度許可する」を押してください';
+              if(code === 'CANCELED') return '許可がキャンセルされました';
+              if(/accessNotConfigured|has not been used|is disabled/i.test(m)) return 'Google Cloud で Google Calendar API が有効になっていません';
+              if(code === 403) return 'Googleカレンダーへのアクセスが許可されていません(' + m.slice(0, 80) + ')';
+              if(e instanceof TypeError || /network|Failed to fetch/i.test(m)) return 'インターネットにつながっていないため同期できませんでした';
+              return '同期できませんでした(' + m.slice(0, 80) + ')';
+            }
+            async function token(scopes, interactive){
+              const r = await GCA.authorize({ scopes, interactive, email:email() });
+              return r.accessToken;
+            }
+            async function api(tok, path, opts = {}){
+              const res = await fetch(API + path, { ...opts, headers:{ Authorization:'Bearer ' + tok, 'Content-Type':'application/json', ...(opts.headers || {}) } });
+              if(res.status === 204) return null;
+              const body = await res.json().catch(() => null);
+              if(!res.ok){ const err = new Error((body && body.error && body.error.message) || ('HTTP ' + res.status)); err.status = res.status; throw err; }
+              return body;
+            }
+            async function listAll(tok, path){
+              const items = [];
+              let pageToken = '';
+              for(let i = 0; i < 10; i++){
+                const r = await api(tok, path + (pageToken ? '&pageToken=' + encodeURIComponent(pageToken) : ''));
+                items.push(...((r && r.items) || []));
+                pageToken = r && r.nextPageToken;
+                if(!pageToken) break;
+              }
+              return items;
+            }
+            const range = () => {
+              const today = Math.floor((Date.now() - base()) / DAY);
+              return { from:today - PAST_DAYS, to:today + FUTURE_DAYS,
+                min:new Date(base() + (today - PAST_DAYS) * DAY).toISOString(), max:new Date(base() + (today + FUTURE_DAYS + 1) * DAY).toISOString() };
+            };
+
+            // ---- 取り込み ----
+            async function importEvents(tok){
+              const cals = await listAll(tok, '/users/me/calendarList?minAccessRole=reader&fields=items(id,summary,summaryOverride,backgroundColor,primary,selected),nextPageToken');
+              const info = {};
+              cals.filter(c => c.id !== g.exportCalId).forEach(c => {
+                info[c.id] = { name:c.primary ? 'メイン' : (c.summaryOverride || c.summary || 'カレンダー'), color:c.backgroundColor || '#4B87C3', primary:!!c.primary };
+                // 初めて見るカレンダーは、Googleカレンダーで表示にしているものだけオン
+                if(g.calendars[c.id] === undefined) g.calendars[c.id] = !!(c.primary || c.selected);
+              });
+              // もうないカレンダー(削除・共有の解除)のオン・オフは片づける
+              Object.keys(g.calendars).forEach(id => { if(!info[id]) delete g.calendars[id]; });
+              const r = range(), next = [];
+              for(const id of Object.keys(info)){
+                if(!g.calendars[id]) continue;
+                const items = await listAll(tok, `/calendars/${encodeURIComponent(id)}/events?singleEvents=true&orderBy=startTime&maxResults=250`
+                  + `&timeMin=${encodeURIComponent(r.min)}&timeMax=${encodeURIComponent(r.max)}&fields=items(summary,start,end,status),nextPageToken`);
+                items.forEach(ev => {
+                  if(ev.status === 'cancelled' || !ev.start || !ev.end) return;
+                  const t = ev.summary || '(タイトルなし)';
+                  if(ev.start.date){
+                    const [y1, m1, d1] = ev.start.date.split('-').map(Number), [y2, m2, d2] = ev.end.date.split('-').map(Number);
+                    next.push({ cal:id, t, allDay:true, s:new Date(y1, m1 - 1, d1).getTime(), e:new Date(y2, m2 - 1, d2).getTime() });
+                  } else {
+                    next.push({ cal:id, t, s:Date.parse(ev.start.dateTime), e:Date.parse(ev.end.dateTime) });
+                  }
+                });
+              }
+              Object.keys(g.calendarsInfo).forEach(k => delete g.calendarsInfo[k]);
+              Object.assign(g.calendarsInfo, info);
+              raw = next;
+              apply();
+              saveCache();
+            }
+
+            // ---- 書き出し: 時間軸のタスクを「StudySync」カレンダーにそろえる(タスクのIDで対応づけ) ----
+            const exportSig = () => { const r = range(); return JSON.stringify(home.exportableTasks(r.from, r.to)); };
+            async function ensureExportCalendar(tok){
+              if(g.exportCalId){
+                try { await api(tok, `/calendars/${encodeURIComponent(g.exportCalId)}?fields=id`); return g.exportCalId; }
+                catch(e){ if(e.status !== 404 && e.status !== 403) throw e; }
+              }
+              const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Tokyo';
+              const cal = await api(tok, '/calendars', { method:'POST', body:JSON.stringify({ summary:'StudySync', description:'StudySyncで時間軸に置いたタスク(アプリから自動で書き出し)', timeZone:tz }) });
+              g.exportCalId = cal.id;
+              home.flush();
+              return cal.id;
+            }
+            async function exportTasks(tok){
+              const calId = await ensureExportCalendar(tok);
+              const r = range();
+              const tasks = home.exportableTasks(r.from, r.to);
+              const existing = await listAll(tok, `/calendars/${encodeURIComponent(calId)}/events?singleEvents=true&maxResults=2500`
+                + `&timeMin=${encodeURIComponent(r.min)}&timeMax=${encodeURIComponent(r.max)}&fields=items(id,summary,start,end,extendedProperties),nextPageToken`);
+              const byTask = new Map();
+              existing.forEach(ev => {
+                const id = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.studysyncTaskId;
+                byTask.set(id && !byTask.has(id) ? id : '_extra' + ev.id, ev);
+              });
+              for(const t of tasks){
+                const start = new Date(base() + t.startMin * 60000), end = new Date(start.getTime() + t.dur * 60000);
+                const body = {
+                  summary:(t.done ? '✓ ' : '') + (t.review ? '[復習] ' : '') + t.title,
+                  description:`教科: ${t.subject}\nStudySyncで管理している予定です。変更はStudySyncで行ってください。`,
+                  start:{ dateTime:start.toISOString() }, end:{ dateTime:end.toISOString() },
+                  extendedProperties:{ private:{ studysyncTaskId:t.id } },
+                };
+                const ev = byTask.get(t.id);
+                byTask.delete(t.id);
+                if(!ev){ await api(tok, `/calendars/${encodeURIComponent(calId)}/events`, { method:'POST', body:JSON.stringify(body) }); continue; }
+                const same = ev.summary === body.summary && ev.start && ev.end
+                  && Date.parse(ev.start.dateTime) === start.getTime() && Date.parse(ev.end.dateTime) === end.getTime();
+                if(!same) await api(tok, `/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(ev.id)}`, { method:'PATCH', body:JSON.stringify(body) });
+              }
+              // StudySyncから消えた(または範囲外に移った)タスクの予定は消す
+              for(const ev of byTask.values()){
+                try { await api(tok, `/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(ev.id)}`, { method:'DELETE' }); }
+                catch(e){ if(e.status !== 404 && e.status !== 410) throw e; }
+              }
+            }
+
+            async function sync(manual, exportOnly){
+              if(!g.connected) return;
+              if(busy){ again = true; return; }
+              busy = true; st.status = 'syncing'; if(manual) st.error = null; notify();
+              try {
+                const tok = await token(g.exportOn ? [SC_READ, SC_APP] : [SC_READ], false);
+                if(!exportOnly) await importEvents(tok);
+                if(g.exportOn){ const sig = exportSig(); await exportTasks(tok); lastExportSig = sig; }
+                g.lastSync = new Date().toISOString();
+                st.error = null; st.needsConsent = false;
+                home.flush();
+              } catch(e){
+                st.error = friendly(e);
+                st.needsConsent = !!e && (e.code === 'NEEDS_CONSENT' || e.status === 401);
+              } finally {
+                busy = false; st.status = 'idle'; notify();
+                if(again){ again = false; sync(false); }
+              }
+            }
+
+            // ---- 設定からの操作 ----
+            async function connect(){
+              st.error = null; notify();
+              try {
+                await token(g.exportOn ? [SC_READ, SC_APP] : [SC_READ], true);
+                g.connected = true; g.syncOn = true;
+                home.flush();
+                await sync(true);
+                return true;
+              } catch(e){ st.error = friendly(e); notify(); return false; }
+            }
+            function disconnect(){
+              g.connected = false; g.syncOn = false; g.exportOn = false;
+              raw = []; apply();
+              Object.keys(g.calendarsInfo).forEach(k => delete g.calendarsInfo[k]);
+              Object.keys(g.calendars).forEach(k => delete g.calendars[k]);
+              try { localStorage.removeItem(CACHE_KEY); } catch(_){ /* 保存できない環境 */ }
+              st.error = null; st.needsConsent = false;
+              home.flush(); notify();
+            }
+            async function setExport(on){
+              if(!on){ g.exportOn = false; home.flush(); notify(); return true; }
+              try {
+                await token([SC_READ, SC_APP], true);
+                g.exportOn = true; home.flush();
+                await sync(true);
+                return true;
+              } catch(e){ st.error = friendly(e); notify(); return false; }
+            }
+            function setShow(on){ g.syncOn = on; home.flush(); notify(); if(on) sync(false); }
+            function setCalendar(id, on){ g.calendars[id] = on; home.flush(); notify(); sync(false); }
+
+            // ---- いつ同期するか: 起動時、アプリに戻ったとき、開いている間は15分ごと。書き出しはタスクが変わったら少し待って反映 ----
+            if(g.connected) loadCache();
+            g.set({});
+            setTimeout(() => sync(false), 1500);
+            document.addEventListener('visibilitychange', () => {
+              if(document.hidden || !g.connected) return;
+              const last = g.lastSync ? Date.parse(g.lastSync) : 0;
+              if(Date.now() - last > 2 * 60000) sync(false);
+            });
+            setInterval(() => { if(!document.hidden) sync(false); }, 15 * 60000);
+            let exportTimer = null;
+            setInterval(() => {
+              if(!g.connected || !g.exportOn || busy || document.hidden) return;
+              const sig = exportSig();
+              if(sig === lastExportSig) return;
+              lastExportSig = sig;
+              clearTimeout(exportTimer);
+              exportTimer = setTimeout(() => sync(false, true), 8000);
+            }, 5000);
           })();
           </script>
