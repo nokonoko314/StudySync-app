@@ -3275,6 +3275,7 @@ body{
           function completionFeedback(task, msg, undo){
             if(!(task.review && task.review.on)){ showToast(msg, undo); return; }
             let rating = 'good';
+            task.rating = rating;
             let rv = scheduleNextReview(task, rating);
             renderBlocks(); refreshWeekStrip();
             hideToast();
@@ -3288,6 +3289,7 @@ body{
                 </div>`}`;
               rvPrompt.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => {
                 rating = b.dataset.r;
+                task.rating = rating;
                 removeGeneratedReview(task);
                 rv = scheduleNextReview(task, rating);
                 renderBlocks(); refreshWeekStrip();
@@ -3626,15 +3628,51 @@ body{
             const today = pend.filter(x => dayOfTask(x) === t).length;
             const doneN = REVIEW_HISTORY.done + reviews.filter(x => x.status === 'completed').length;
             const denom = doneN + REVIEW_HISTORY.missed + overdue;
-            const rate = denom ? Math.round(doneN / denom * 100) : 0;
-            const bySubject = activeSubjects().map(name => {
-              const base = REVIEW_HISTORY.retention[name] ?? 60;
-              const bonus = reviews.filter(x => x.subject === name && x.status === 'completed').length * 4;
-              const penalty = pend.filter(x => x.subject === name && dayOfTask(x) < t).length * 8;
-              return { name, color:SUBJECT_COLORS[name], pct:Math.max(5, Math.min(98, base + bonus - penalty)) };
-            }).sort((a, b) => b.pct - a.pct);
+            const rate = denom ? Math.round(doneN / denom * 100) : null;
+            const bySubject = APP_MODE ? retentionBySubject()
+              : activeSubjects().map(name => {
+                const base = REVIEW_HISTORY.retention[name] ?? 60;
+                const bonus = reviews.filter(x => x.subject === name && x.status === 'completed').length * 4;
+                const penalty = pend.filter(x => x.subject === name && dayOfTask(x) < t).length * 8;
+                return { name, color:SUBJECT_COLORS[name], pct:Math.max(5, Math.min(98, base + bonus - penalty)), items:1 };
+              }).sort((a, b) => b.pct - a.pct);
             const next7 = Array.from({ length:7 }, (_, i) => ({ label:shortDate(t + i).split('(')[0], count:pend.filter(x => dayOfTask(x) === t + i).length }));
             return { rate, today, overdue, bySubject, next7 };
+          }
+
+          // 覚えた内容(最初の勉強と、その復習のつながり)ごとに、最後に勉強してからの日数と、
+          // 復習の回数・理解度で決まる「忘れにくさ(安定度・日)」から、今どれくらい覚えているかを推定する。
+          // 勉強していない内容は数えない(まだ何も覚えていないので、定着度は出さない)
+          const STABILITY_START = 2;                                  // 初めて勉強した直後: 1日後に約60%
+          const STABILITY_GROWTH = { again:1.2, good:2.5, easy:3.5 };  // 復習するたびに忘れにくくなる
+          function retentionBySubject(){
+            const chains = new Map();
+            scheduledTasks.forEach(x => {
+              if(!x.review || !(x.review.on || x.isReview)) return;
+              const base = x.review.baseDay ?? dayOfTask(x);
+              const key = x.subject + '\u0000' + x.title + '\u0000' + base;
+              if(!chains.has(key)) chains.set(key, []);
+              chains.get(key).push(x);
+            });
+            const bySub = new Map();
+            chains.forEach(list => {
+              const done = list.filter(x => x.status === 'completed').sort((a, b) => a.startMin - b.startMin);
+              if(!done.length) return;
+              // 最初の勉強は理解度で出発点を変え(もう一度=忘れやすい、完璧=忘れにくい)、復習するたびにその理解度に応じて忘れにくくなる
+              const first = done[0].rating || 'good';
+              let stability = STABILITY_START * (first === 'again' ? 0.6 : first === 'easy' ? 1.4 : 1);
+              done.slice(1).forEach(x => { stability *= STABILITY_GROWTH[x.rating || 'good']; });
+              const last = done[done.length - 1];
+              const elapsedDays = Math.max(0, (nowMin - (last.startMin + last.dur)) / DAY_MIN);
+              const r = Math.exp(-elapsedDays / stability);
+              const sub = last.subject;
+              if(!bySub.has(sub)) bySub.set(sub, []);
+              bySub.get(sub).push(r);
+            });
+            return [...bySub.entries()]
+              .map(([name, rs]) => ({ name, color:SUBJECT_COLORS[name] || colorForSubject(name), items:rs.length,
+                pct:Math.round(rs.reduce((a, b) => a + b, 0) / rs.length * 100) }))
+              .sort((a, b) => b.pct - a.pct);
           }
 
           const rvPill = document.getElementById('hoReviewPill');
@@ -5000,8 +5038,9 @@ body{
               .rt-kpi{padding:10px; border-radius:14px; background:var(--surface2);}
               .rt-kpi b{display:block; font-family:"Shippori Mincho",serif; font-size:20px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums;}
               .rt-kpi span{font-size:10.5px; font-weight:700; color:var(--ink-soft);}
-              .rt-row{display:grid; grid-template-columns:56px 1fr 44px; align-items:center; gap:10px; margin-bottom:10px;}
-              .rt-row .name{display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--ink);}
+              .rt-row{display:grid; grid-template-columns:minmax(0, 96px) 1fr 44px; align-items:center; gap:10px; margin-bottom:10px;}
+              .rt-row .name .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+              .rt-row .name{display:flex; align-items:center; gap:6px; min-width:0; font-size:12.5px; font-weight:700; color:var(--ink);}
               .rt-row .name i{width:8px; height:8px; border-radius:50%; flex:none;}
               .rt-track{position:relative; height:10px; border-radius:99px; background:var(--surface2); overflow:hidden;}
               .rt-track i{position:absolute; inset:0 auto 0 0; border-radius:inherit;}
@@ -5072,14 +5111,15 @@ body{
                 box.innerHTML = `
                   <div class="chart-card-head"><span class="t">記憶の定着</span><span class="v">忘却曲線からの推定</span></div>
                   <div class="rt-kpis">
-                    <div class="rt-kpi"><b>${s.rate}%</b><span>復習の達成率</span></div>
+                    <div class="rt-kpi"><b>${s.rate === null ? '—' : s.rate + '%'}</b><span>復習の達成率</span></div>
                     <div class="rt-kpi"><b>${s.today}件</b><span>今日の復習</span></div>
                     <div class="rt-kpi"><b>${s.overdue}件</b><span>期限切れ</span></div>
                   </div>
-                  ${s.bySubject.map(x => `<div class="rt-row"><span class="name"><i style="background:${x.color}"></i>${x.name}</span>
-                    <span class="rt-track" role="img" aria-label="${x.name}の推定定着度 ${x.pct}%"><i style="width:${x.pct}%; background:${x.color}"></i></span>
-                    <span class="rt-pct">${x.pct}%</span></div>`).join('')}
-                  <p class="rt-note">縦線は目安の80%です。復習を予定どおりこなすほど、また理解度で「完璧」を選ぶほど上がり、期限切れのまま放置すると下がります。</p>
+                  ${s.bySubject.length ? s.bySubject.map(x => `<div class="rt-row"><span class="name" title="${x.name}"><i style="background:${x.color}"></i><span class="nm">${x.name}</span></span>
+                    <span class="rt-track" role="img" aria-label="${x.name}の推定定着度 ${x.pct}%(${x.items}件の内容から)"><i style="width:${Math.max(2, x.pct)}%; background:${x.color}"></i></span>
+                    <span class="rt-pct">${x.pct}%</span></div>`).join('')
+                    : '<p class="rt-note" style="margin-top:4px">自動復習つきのタスクを完了すると、教科ごとに「今どれくらい覚えているか」がここに出ます。</p>'}
+                  <p class="rt-note">忘却曲線から、勉強した内容を今どれくらい覚えているかを推定しています。時間がたつほど下がり、復習するたびに下がりにくくなります(理解度で「完璧」を選ぶとさらに)。縦線は目安の80%です。</p>
                   ${s.overdue ? `<div class="rt-warn">期限切れの復習が${s.overdue}件あります<button type="button" id="rtOpenQueue">確認する</button></div>` : ''}`;
                 box.querySelector('#rtOpenQueue')?.addEventListener('click', () => { goToHome(); home.openReviewQueue(); });
                 const max = Math.max(1, ...s.next7.map(d => d.count));
@@ -5639,7 +5679,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.13.0';
+            const APP_VERSION = '1.13.1';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6181,7 +6221,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
+                  <li><b>${APP_VERSION}</b><span>統計の「記憶の定着」を忘却曲線で正しく推定するように(勉強していない教科は出さない、理解度を反映)</span></li>
+                  <li><b>1.13.0</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
                   <li><b>1.12.1</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
                   <li><b>1.12.0</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
                   <li><b>1.11.1</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
