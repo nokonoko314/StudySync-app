@@ -1,0 +1,17 @@
+:root{--bg:#FEFCF8; --ink:#2B2620; --soft:#625A6C; --line:#EAE1D3; --accent:#0A7BA0;}
+@media (prefers-color-scheme: dark){ :root{--bg:#1C1F26; --ink:#F4F6FA; --soft:#B7BEC9; --line:rgba(199,205,217,.18); --accent:#4FC3E0;} }
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif; line-height:1.8; font-size:15px;}
+main{max-width:720px; margin:0 auto; padding:32px 16px 64px;}
+.brand{margin:0 0 8px; font-weight:800; letter-spacing:.04em; color:var(--accent);}
+.brand a{color:inherit; text-decoration:none;}
+h1{font-size:26px; line-height:1.4; margin:0 0 8px;}
+h2{font-size:18px; margin:32px 0 8px; padding-top:16px; border-top:1px solid var(--line);}
+h3{font-size:15px; margin:18px 0 4px;}
+p, li{color:var(--ink);}
+.meta, .en{color:var(--soft); font-size:13px;}
+.lead{font-size:17px;}
+a{color:var(--accent);}
+ul, ol{padding-left:22px;}
+.contact{padding:12px 14px; border:1px solid var(--line); border-radius:12px;}
+.links{margin-top:32px; color:var(--soft);}

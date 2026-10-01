@@ -5562,6 +5562,18 @@ body{
             .st-log li span{display:block; font-size:12px; color:var(--ink-soft); line-height:1.6;}
 
             .gg-account{display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; background:var(--surface2);}
+            .pm-badge{display:inline-block; margin-left:6px; padding:1px 7px; border-radius:99px; background:color-mix(in srgb, var(--gold) 18%, transparent); color:var(--gold); font-size:10.5px; font-weight:800; vertical-align:1px;}
+            .pm-hero{display:flex; flex-direction:column; align-items:center; gap:4px; padding:18px 12px 14px; margin-bottom:14px; border-radius:16px; text-align:center;
+              background:linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, var(--surface2)), var(--surface2));}
+            .pm-hero b{font-size:17px; color:var(--ink);} .pm-hero small{font-size:12px; color:var(--ink-soft);}
+            .pm-star{font-size:26px; line-height:1; color:var(--gold);}
+            .pm-plans{display:grid; gap:8px; margin-top:4px;}
+            .pm-plan{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:60px; padding:10px 14px; border-radius:14px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); font:inherit; text-align:left; cursor:pointer;}
+            .pm-plan b{display:block; font-size:14.5px;} .pm-plan small{font-size:11.5px; color:var(--gold); font-weight:800;}
+            .pm-plan.best{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold);}
+            .pm-price{font-size:15px; font-weight:800; white-space:nowrap;}
+            .pm-plan:disabled{opacity:.5; cursor:default;}
+            a.st-secondary{text-decoration:none;}
             .gg-account b{display:block; font-size:14px; color:var(--ink);} .gg-account small{font-size:12px; color:var(--ink-soft);}
             .gg-avatar{width:40px; height:40px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center; background:#4B87C3; color:#fff; font-weight:800;}
             .gg-avatar.sm{width:32px; height:32px; font-size:13px;} .gg-avatar.alt{background:var(--surface2); color:var(--ink-soft); box-shadow:inset 0 0 0 1px var(--line);}
@@ -5627,7 +5639,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.12.1';
+            const APP_VERSION = '1.13.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6070,6 +6082,7 @@ body{
                         <div id="ggSignOutArea">
                           <button type="button" class="st-secondary danger" id="ggSignOut">ログアウト</button>
                           <p class="st-note">ログアウトすると、この端末のタスク・教科・プロジェクト・設定は消えて、初めて入れたときの状態に戻ります。データはクラウドに残るので、もう一度ログインすれば元に戻ります。</p>
+                          <button type="button" class="st-secondary danger" id="ggDelete" style="margin-top:18px">アカウントとデータを削除</button>
                         </div>`);
                       el.querySelector('#ggSyncNow').addEventListener('click', () => C.syncNow());
                       const area = el.querySelector('#ggSignOutArea');
@@ -6085,6 +6098,22 @@ body{
                         area.querySelector('#ggRetrySave').addEventListener('click', () => { signingOut = false; draw(); C.syncNow(); });
                         area.querySelector('#ggForceOut').addEventListener('click', () => doSignOut(true));
                       };
+                      el.querySelector('#ggDelete').addEventListener('click', () => {
+                        signingOut = true;
+                        area.innerHTML = `<p class="st-lead" style="margin:14px 0 0">アカウントと、クラウドに保存したすべてのデータ(タスク・教科・プロジェクト・設定・記録)を削除します。<b>元に戻せません。</b></p>
+                          <p class="st-note">有料の定期購入は自動では解約されません。先に Google Play の「定期購入」から解約してください。Googleカレンダーに書き出した「StudySync」カレンダーは、Googleカレンダーから削除できます。</p>
+                          <p class="st-label">確認のため「削除」と入力してください</p><input class="st-input" id="ggDelInput" type="text" autocomplete="off" aria-label="確認の入力">
+                          <button type="button" class="st-primary" id="ggDelYes" disabled style="opacity:.45; background:var(--danger)">完全に削除する</button>
+                          <button type="button" class="st-secondary" id="ggDelNo">やめる</button>`;
+                        const input = area.querySelector('#ggDelInput'), yes = area.querySelector('#ggDelYes');
+                        input.addEventListener('input', () => { const ok = input.value.trim() === '削除'; yes.disabled = !ok; yes.style.opacity = ok ? 1 : .45; });
+                        yes.addEventListener('click', async () => {
+                          area.innerHTML = '<p class="st-note">削除しています…(もう一度ログインを求められることがあります)</p>';
+                          const r = await C.deleteAccount();
+                          if(r !== 'done'){ signingOut = false; draw(); }
+                        });
+                        area.querySelector('#ggDelNo').addEventListener('click', () => { signingOut = false; draw(); });
+                      });
                       el.querySelector('#ggSignOut').addEventListener('click', () => {
                         signingOut = true;
                         area.innerHTML = `<p class="st-lead" style="margin:14px 0 0">ログアウトしますか？この端末のデータは消えます(クラウドには残ります)。</p>
@@ -6120,6 +6149,7 @@ body{
                   <p class="st-note">連携すると、この端末の見本データは消え、アカウントのデータに切り替わります。</p>
                   <button type="button" class="gg-signin" disabled aria-disabled="true"><span class="gg-g" aria-hidden="true">G</span>Googleでログイン(準備中)</button>`);
               },
+              premium(el, feature){ premiumSheet(el, feature); },
               gcal(el){
                 const g = window.StudySyncGoogle, GC = window.StudySyncCalendar;
                 if(GC && GC.available){ gcalSheet(el); return; }
@@ -6151,7 +6181,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
+                  <li><b>${APP_VERSION}</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
+                  <li><b>1.12.1</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
                   <li><b>1.12.0</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
                   <li><b>1.11.1</b><span>Googleカレンダーの許可画面でエラー(400)になる問題を修正</span></li>
                   <li><b>1.11.0</b><span>Googleカレンダー同期: 予定をホームの時間軸とカレンダーに表示(カレンダーごとに選べる)、時間軸のタスクを「StudySync」カレンダーへ書き出し</span></li>
@@ -6177,6 +6208,50 @@ body{
               },
             };
 
+            // ---- StudySync プレミアム(購入・復元・利用中の表示) ----
+            let premiumEl = null, premiumSubscribed = false;
+            function premiumSheet(el, feature){
+              premiumEl = el;
+              const PM = window.StudySyncPremium;
+              if(!premiumSubscribed && PM){ premiumSubscribed = true; PM.onChange(() => { if(premiumEl && premiumEl.isConnected) draw(); }); }
+              const PLAN = { ANNUAL:['年額プラン', 'いちばんお得'], MONTHLY:['月額プラン', ''], LIFETIME:['買い切り', '一度の支払いでずっと'] };
+              const BENEFITS = ['広告を表示しない', 'Googleカレンダーへの書き出し', 'これから追加するプレミアム機能もすべて'];
+              function draw(){
+                if(!premiumEl || !premiumEl.isConnected) return;
+                const busy = PM.status !== 'idle';
+                const list = `<ul class="gg-benefits">${BENEFITS.map(b => `<li>${b}</li>`).join('')}</ul>`;
+                if(PM.premium){
+                  const exp = PM.expires ? `${PM.expires.getFullYear()}/${PM.expires.getMonth() + 1}/${PM.expires.getDate()}` : '';
+                  premiumEl.innerHTML = `<div class="pm-hero on"><span class="pm-star" aria-hidden="true">★</span><b>プレミアムを利用中です</b><small>${exp ? (PM.willRenew ? `次の更新日 ${exp}` : `${exp} まで利用できます`) : 'ご利用ありがとうございます'}</small></div>
+                    ${list}
+                    <a class="st-secondary" href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Google Playで定期購入を管理</a>`;
+                  return;
+                }
+                premiumEl.innerHTML = `
+                  ${feature ? `<div class="st-callout"><p>「${esc(feature)}」はプレミアムの機能です。</p></div>` : ''}
+                  <div class="pm-hero"><span class="pm-star" aria-hidden="true">★</span><b>StudySync プレミアム</b><small>勉強に集中できる環境と、便利な機能をまとめて</small></div>
+                  ${list}
+                  <div class="pm-plans">${PM.packages.length ? PM.packages.map(p => { const [name, note] = PLAN[p.packageType] || [p.product.title, '']; return `
+                    <button type="button" class="pm-plan${p.packageType === 'ANNUAL' ? ' best' : ''}" data-pkg="${esc(p.identifier)}" ${busy ? 'disabled' : ''}>
+                      <span><b>${esc(name)}</b>${note ? `<small>${esc(note)}</small>` : ''}</span><span class="pm-price">${esc(p.product.priceString)}</span></button>`; }).join('')
+                    : '<p class="st-note">プランを読み込めませんでした。インターネットにつながっているか確認して、もう一度開いてください。</p>'}</div>
+                  ${PM.error ? `<div class="st-callout"><p>${esc(PM.error)}</p></div>` : ''}
+                  <button type="button" class="st-secondary" id="pmRestore" ${busy ? 'disabled' : ''}>${PM.status === 'restoring' ? '確認しています…' : '購入を復元'}</button>
+                  <p class="st-note">定期購入は、期間が終わる24時間前までに解約しない限り自動で更新されます。解約は Google Play の「定期購入」からいつでもできます。購入はログイン中のアカウントにひもづき、同じアカウントならほかの端末でも使えます。</p>`;
+                premiumEl.querySelectorAll('[data-pkg]').forEach(b => b.addEventListener('click', async () => {
+                  const r = await PM.purchase(b.dataset.pkg);
+                  if(r === 'done') showToast('プレミアムになりました。ありがとうございます!');
+                  else if(r === 'pending') showToast('購入の確認を待っています。完了するとプレミアムになります');
+                }));
+                premiumEl.querySelector('#pmRestore').addEventListener('click', async () => {
+                  const ok = await PM.restore();
+                  showToast(ok ? '購入を復元しました' : '復元できる購入は見つかりませんでした');
+                });
+                if(!PM.packages.length) PM.refresh();
+              }
+              draw();
+            }
+
             // ---- Googleカレンダー同期の設定シート(アプリ版) ----
             let gcalEl = null, gcalSubscribed = false;
             function gcalSheet(el){
@@ -6188,7 +6263,7 @@ body{
                 if(!gcalEl || !gcalEl.isConnected) return;
                 const last = g.lastSync ? new Date(g.lastSync) : null;
                 const hm = d => `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-                const sw = (id, title, sub, on) => `<div class="st-option" style="cursor:default"><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span><button type="button" class="st-toggle" role="switch" ${id} aria-checked="${on}" aria-label="${title}" style="margin-left:auto"></button></div>`;
+                const sw = (id, title, sub, on) => `<div class="st-option" style="cursor:default"><span><b>${title}</b>${sub ? `<small>${sub}</small>` : ''}</span><button type="button" class="st-toggle" role="switch" ${id} aria-checked="${on}" aria-label="${title.replace(/<[^>]+>/g, '')}" style="margin-left:auto"></button></div>`;
                 const err = GC.error ? `<div class="st-callout"><p>${esc(GC.error)}</p>${GC.needsConsent ? '<button type="button" class="st-primary" id="gcReconsent">もう一度許可する</button>' : ''}</div>` : '';
                 if(!g.connected){
                   gcalEl.innerHTML = `<p class="st-lead">Googleカレンダーの予定(学校・塾・バイトなど)を、ホームの時間軸とカレンダーに表示します。空いている時間が分かるので、勉強の予定を入れやすくなります。</p>
@@ -6217,7 +6292,7 @@ body{
                       : '<div class="st-option" style="cursor:default"><span><small>同期すると、ここにカレンダーが並びます</small></span></div>'}</div>
                   </div>
                   <p class="st-label">書き出し</p>
-                  <div class="st-options">${sw('id="gcExport"', 'StudySyncの予定を書き出す', '時間軸に置いたタスクを、Googleカレンダーの「StudySync」カレンダーに追加します', !!g.exportOn)}</div>
+                  <div class="st-options">${sw('id="gcExport"', 'StudySyncの予定を書き出す' + (window.StudySyncPremium && !window.StudySyncPremium.allows() ? ' <span class="pm-badge">プレミアム</span>' : ''), '時間軸に置いたタスクを、Googleカレンダーの「StudySync」カレンダーに追加します', !!g.exportOn)}</div>
                   <p class="st-note">過去7日〜60日先の予定が対象です。アプリを開いたとき・アプリに戻ったときに同期します(開いたままなら15分ごとにも)。書き出した予定はStudySyncで変更してください(Googleカレンダー側で変えても、次の同期で元に戻ります)。</p>
                   <button type="button" class="st-secondary danger" id="gcDisconnect">連携を解除</button>`;
                 gcalEl.querySelector('#gcSyncNow').addEventListener('click', () => GC.syncNow());
@@ -6226,6 +6301,7 @@ body{
                 gcalEl.querySelectorAll('[data-cal]').forEach(b => b.addEventListener('click', () => GC.setCalendar(b.dataset.cal, !g.calendars[b.dataset.cal])));
                 gcalEl.querySelector('#gcExport').addEventListener('click', async e => {
                   const turnOn = !g.exportOn;
+                  if(turnOn && window.StudySyncPremium && !window.StudySyncPremium.require('Googleカレンダーへの書き出し')) return;
                   e.currentTarget.disabled = true;
                   const ok = await GC.setExport(turnOn);
                   if(ok) showToast(turnOn ? '「StudySync」カレンダーへの書き出しを始めました' : '書き出しを止めました(書き出し済みの予定はそのまま残ります)');
@@ -6259,8 +6335,12 @@ body{
               trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
               info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
               help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 015 .8c0 1.7-2.5 2.2-2.5 3.8M12 17.2v.3"/>',
+              star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
             };
             const SECTIONS = () => [
+              ...(window.StudySyncPremium && window.StudySyncPremium.available ? [['プレミアム', [
+                { key:'premium', icon:'star', tint:'var(--gold)', title:'StudySync プレミアム', sub:window.StudySyncPremium.premium ? 'ご利用ありがとうございます' : '広告なし・Googleカレンダーへの書き出しなど', value:window.StudySyncPremium.premium ? '利用中' : '' },
+              ]]] : []),
               ['表示', [
                 { key:'theme', icon:'theme', tint:'var(--ink-soft)', title:'ダークモード', value:THEME_LABEL[S.themeMode] },
                 { key:'accent', icon:'accent', tint:'var(--indigo)', title:'UIの色', sub:'ボタンなどのメインカラー', swatch:S.accent || 'var(--indigo)' },
@@ -6297,6 +6377,7 @@ body{
               ]],
               ['このアプリについて', [
                 { key:'changelog', icon:'info', tint:'var(--ink-soft)', title:'StudySync', sub:`バージョン ${APP_VERSION}・変更履歴を見る` },
+                { key:'link-privacy', icon:'info', tint:'var(--ink-soft)', title:'プライバシーポリシー' },
               ]],
               ['使い方', [
                 { key:'tour-basic', icon:'help', tint:'var(--indigo)', title:'基本の使い方(チュートリアル)', sub:'ホームの見方・タスクの作り方・スワイプ操作' },
@@ -6334,6 +6415,7 @@ body{
                 if(key === 'subjects'){ goToDrawer(); return; }
                 if(key === 'bulkReview'){ goToHome(); home.openBulkReview(); return; }
                 if(key.startsWith('tour-')){ window.StudySyncTour.start(key.slice(5)); return; }
+                if(key === 'link-privacy'){ window.open('https://studysync-73a0f.web.app/privacy.html', '_blank'); return; }
                 const title = b.querySelector('.st-title').textContent;
                 openSheet(title, el => SHEETS[key](el), b);
               }));
@@ -6360,7 +6442,13 @@ body{
             }
             renderList();
             window.StudySyncUI = { colorPicker, HUE_WHEEL, settings:S, refreshSettings:renderList, flushSettings:() => flushSettings(),
-              openSetting(key){ const titles = { google:'Googleアカウント連携', gcal:'Googleカレンダー同期' }; openSheet(titles[key] || '', el => SHEETS[key](el)); } };
+              openSetting(key, arg){ const titles = { google:'Googleアカウント連携', gcal:'Googleカレンダー同期', premium:'StudySync プレミアム' }; openSheet(titles[key] || '', el => SHEETS[key](el, arg)); } };
+            // 課金の処理はこの画面より後に読み込まれるので、読み込みが終わってから一覧に反映する
+            window.addEventListener('load', () => {
+              if(!window.StudySyncPremium) return;
+              window.StudySyncPremium.onChange(() => { if(!overlay.classList.contains('show')) renderList(); });
+              renderList();
+            });
             window.StudySyncGoogle.onChange(() => { if(!overlay.classList.contains('show')) renderList(); });
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if(S.themeMode === 'system') applyTheme(); });
           })();
@@ -7247,7 +7335,7 @@ function undoAction(scopeId){
               available:!!(window.__STUDYSYNC_APP && Auth && Store),
               user:null, status:'idle', lastSync:null, error:null,
               onChange(fn){ listeners.push(fn); },
-              signIn, signOut, syncNow:() => push(true),
+              signIn, signOut, deleteAccount, syncNow:() => push(true),
             };
             window.StudySyncCloud = st;
             const notify = () => listeners.forEach(fn => { try { fn(st); } catch(_){ /* 閉じた画面の描画は無視 */ } });
@@ -7275,8 +7363,9 @@ function undoAction(scopeId){
               window.StudySyncUI.flushSettings();
               return { app:ls.get(APP_KEY) || '', settings:ls.get(SET_KEY) || '' };
             }
+            let deleting = false;
             async function push(force){
-              if(!st.user || pushing) return;
+              if(!st.user || pushing || deleting) return;
               // まだ一度もクラウドに保存できていない = 初めての保存。見本は持っていかない
               if(!ls.get(SYNCED_KEY) && window.StudySyncHome.hasSamples()) window.StudySyncHome.clearSamples();
               const p = localPayload();
@@ -7336,6 +7425,31 @@ function undoAction(scopeId){
               st.user = null;
               window.__studysyncHold = true;
               try { [APP_KEY, SET_KEY, SYNCED_KEY].forEach(k => localStorage.removeItem(k)); } catch(_){ /* 保存できない環境 */ }
+              location.reload();
+              return 'done';
+            }
+
+            // アカウントとクラウドのデータを完全に削除する(Google Play の「アカウント削除」の決まりに対応)。
+            // Firebase は最近ログインしていないと削除できないので、そのときはもう一度ログインしてから消す
+            async function deleteAccount(){
+              if(!st.user) return 'nouser';
+              const uid = st.user.uid;
+              deleting = true;
+              // 保存中の書き込みが終わるのを待ってから消す(消した直後に書き戻さないように)
+              for(let i = 0; i < 40 && pushing; i++) await new Promise(r => setTimeout(r, 250));
+              try {
+                await withTimeout(Store.deleteDocument({ reference:ref(uid) }), 20000);
+                try { await Auth.deleteUser(); }
+                catch(e){
+                  if(!/recent|requires-recent-login/i.test(String((e && (e.code || e.message)) || e))) throw e;
+                  await Auth.signInWithGoogle();
+                  await Auth.deleteUser();
+                }
+              } catch(e){ deleting = false; st.error = friendly(e); notify(); return 'failed'; }
+              try { await Auth.signOut(); } catch(_){ /* すでに消えている */ }
+              st.user = null;
+              window.__studysyncHold = true;
+              try { [APP_KEY, SET_KEY, SYNCED_KEY, 'studysync.gcal.cache', 'studysync.premium.v1'].forEach(k => localStorage.removeItem(k)); } catch(_){ /* 保存できない環境 */ }
               location.reload();
               return 'done';
             }
@@ -7541,7 +7655,8 @@ function undoAction(scopeId){
               try {
                 const tok = await token(g.exportOn ? [SC_READ, SC_APP] : [SC_READ], false);
                 if(!exportOnly) await importEvents(tok);
-                if(g.exportOn){ const sig = exportSig(); await exportTasks(tok); lastExportSig = sig; }
+                const canExport = !window.StudySyncPremium || window.StudySyncPremium.allows();
+                if(g.exportOn && canExport){ const sig = exportSig(); await exportTasks(tok); lastExportSig = sig; }
                 g.lastSync = new Date().toISOString();
                 st.error = null; st.needsConsent = false;
                 home.flush();
@@ -7608,5 +7723,104 @@ function undoAction(scopeId){
               clearTimeout(exportTimer);
               exportTimer = setTimeout(() => sync(false, true), 8000);
             }, 5000);
+          })();
+          </script>
+
+          <!-- StudySync プレミアム(アプリ内課金・RevenueCat)。購入の状態はRevenueCatが持ち、ログイン中のアカウント(Firebaseのuid)にひもづける -->
+          <script>
+          (function(){
+            // RevenueCat の「Google Play 用の公開SDKキー」(goog_ で始まる)。公開して問題ないキー。未設定のあいだは課金機能を出さず、すべて使える
+            const REVENUECAT_GOOGLE_KEY = '';
+            const ENTITLEMENT = 'premium';
+            const CACHE_KEY = 'studysync.premium.v1';
+            const P = window.Capacitor && window.Capacitor.Plugins;
+            const RC = P && P.Purchases;
+            const listeners = [];
+            let cached = false;
+            try { cached = localStorage.getItem(CACHE_KEY) === '1'; } catch(_){ /* 保存できない環境 */ }
+            const st = {
+              available:!!(window.__STUDYSYNC_APP && RC && REVENUECAT_GOOGLE_KEY),
+              premium:cached, packages:[], status:'idle', error:null, expires:null, willRenew:false,
+              onChange(fn){ listeners.push(fn); },
+              // 有料の機能を使う前に呼ぶ。課金が未設定ならそのまま使える
+              allows(){ return !st.available || st.premium; },
+              require(featureName){
+                if(st.allows()) return true;
+                window.StudySyncUI && window.StudySyncUI.openSetting('premium', featureName);
+                return false;
+              },
+              purchase, restore, refresh:loadOfferings,
+            };
+            window.StudySyncPremium = st;
+            const notify = () => listeners.forEach(fn => { try { fn(st); } catch(_){ /* 閉じた画面は無視 */ } });
+            if(!st.available) return;
+
+            function applyInfo(info){
+              const ent = info && info.entitlements && info.entitlements.active && info.entitlements.active[ENTITLEMENT];
+              st.premium = !!ent;
+              st.expires = ent && ent.expirationDate ? new Date(ent.expirationDate) : null;
+              st.willRenew = !!(ent && ent.willRenew);
+              try { localStorage.setItem(CACHE_KEY, st.premium ? '1' : '0'); } catch(_){ /* 保存できない環境 */ }
+              notify();
+            }
+            const friendly = e => {
+              const m = String((e && (e.message || e.code)) || e || '');
+              if(/network|offline|internet/i.test(m)) return 'インターネットにつながっていません';
+              if(/not allowed|BillingUnavailable|billing/i.test(m)) return 'この端末ではGoogle Playの購入が使えません';
+              return '購入の処理ができませんでした(' + m.slice(0, 80) + ')';
+            };
+            async function loadOfferings(){
+              try {
+                const o = await RC.getOfferings();
+                const cur = o && o.current;
+                const order = { ANNUAL:0, MONTHLY:1, LIFETIME:2 };
+                st.packages = cur ? cur.availablePackages.slice().sort((a, b) => (order[a.packageType] ?? 9) - (order[b.packageType] ?? 9)) : [];
+              } catch(e){ st.packages = []; }
+              notify();
+            }
+            async function purchase(identifier){
+              const pkg = st.packages.find(p => p.identifier === identifier);
+              if(!pkg) return 'missing';
+              st.status = 'buying'; st.error = null; notify();
+              try {
+                const r = await RC.purchasePackage({ aPackage:pkg });
+                applyInfo(r.customerInfo);
+                return st.premium ? 'done' : 'pending';
+              } catch(e){
+                if(e && (e.userCancelled || e.code === '1' || /cancel/i.test(String(e.message)))) return 'cancelled';
+                st.error = friendly(e);
+                return 'failed';
+              } finally { st.status = 'idle'; notify(); }
+            }
+            async function restore(){
+              st.status = 'restoring'; st.error = null; notify();
+              try { const r = await RC.restorePurchases(); applyInfo(r.customerInfo); return st.premium; }
+              catch(e){ st.error = friendly(e); return false; }
+              finally { st.status = 'idle'; notify(); }
+            }
+
+            // ログイン中のアカウントに購入をひもづける(ほかの端末でも同じアカウントならプレミアムになる)
+            let currentUid = null;
+            async function syncUser(){
+              const C = window.StudySyncCloud;
+              const uid = C && C.user ? C.user.uid : null;
+              if(uid === currentUid) return;
+              currentUid = uid;
+              try {
+                const r = uid ? await RC.logIn({ appUserID:uid }) : await RC.logOut().catch(() => RC.getCustomerInfo());
+                applyInfo(r.customerInfo);
+              } catch(_){ /* 次の起動で取り直す */ }
+            }
+            (async () => {
+              try {
+                const C = window.StudySyncCloud;
+                currentUid = C && C.user ? C.user.uid : null;
+                await RC.configure({ apiKey:REVENUECAT_GOOGLE_KEY, appUserID:currentUid });
+                RC.addCustomerInfoUpdateListener(info => applyInfo(info));
+                applyInfo((await RC.getCustomerInfo()).customerInfo);
+                loadOfferings();
+                if(C) C.onChange(() => syncUser());
+              } catch(e){ st.error = friendly(e); notify(); }
+            })();
           })();
           </script>
