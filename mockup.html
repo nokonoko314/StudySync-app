@@ -2695,9 +2695,16 @@ body{
             toastUndo.hidden = !onUndo;
             toastUndo.onclick = () => { if(onUndo) onUndo(); hideToast(); };
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(hideToast, 5000);
+            toastTimer = setTimeout(hideToast, 4000);
           }
           function hideToast(){ toast.classList.remove('show'); }
+          // お知らせ(元に戻す付き)は、ほかの場所に触れたらすぐ消す。下のボタンに重なって邪魔にならないように
+          document.addEventListener('pointerdown', e => {
+            ['hoToast', 'sjToast', 'stToast'].forEach(id => {
+              const el = document.getElementById(id);
+              if(el && el.classList.contains('show') && !el.contains(e.target)) el.classList.remove('show');
+            });
+          }, true);
 
           function renderPoolEmptyState(){
             if(!pool.children.length){
@@ -2720,7 +2727,11 @@ body{
             chip.className = 'chip';
             chip.style.setProperty('--c', task.color);
             chip.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span>${task.title}${reviewBadgeHtml(task)}<span class="tag">${task.subject}</span>`;
+            chip.setAttribute('role', 'button');
+            chip.setAttribute('aria-label', `${task.title}(タップで編集、長押しで時間軸へドラッグ)`);
+            chip.tabIndex = 0;
             chip.addEventListener('pointerdown', (e) => startDragFromPool(e, task, chip));
+            chip.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openHoTaskSheet({ task, pool:true }); } });
             pool.appendChild(chip);
             return chip;
           }
@@ -2744,6 +2755,7 @@ body{
               document.removeEventListener('pointercancel', onUp);
               ghost.remove();
               if(ev.type === 'pointercancel') return;
+              if(Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) <= 8){ openHoTaskSheet({ task, pool:true }); return; }
 
               // board は1日分の高さがあり画面外まで広がっているので、判定は「今見えている時間軸の範囲」で行う。
               // 動かさずに離しただけ(タップ)では配置しない
@@ -3770,8 +3782,9 @@ body{
             hoEditActions.hidden = !task;
             hoStartWheel.hidden = true; hoDurWheel.hidden = true;
             hoStartRow.setAttribute('aria-expanded', 'false'); hoDurRow.setAttribute('aria-expanded', 'false');
-            hoScheduleRow.hidden = !!task;
-            if(task){
+            const isPool = !!(hoEditTarget && hoEditTarget.pool);
+            hoScheduleRow.hidden = !!task && !isPool;
+            if(task && !isPool){
               setScheduleOn(true);
               setTimeDisplay(((task.startMin % DAY_MIN) + DAY_MIN) % DAY_MIN, task.dur);
             } else {
@@ -3782,10 +3795,10 @@ body{
               setScheduleOn(false);
             }
             if(task){
-              const pending = task.status === 'pending';
+              const pending = !isPool && task.status === 'pending';
               hoTaskUnscheduleBtn.hidden = !pending;
               hoTaskCompleteBtn.hidden = !pending;
-              hoTaskReopenBtn.hidden = task.status !== 'completed';
+              hoTaskReopenBtn.hidden = isPool || task.status !== 'completed';
               const shown = [...hoEditActions.children].filter(b => !b.hidden).length;
               hoEditActions.style.gridTemplateColumns = `repeat(${shown}, 1fr)`;
             }
@@ -3819,7 +3832,30 @@ body{
             const title = hoTaskTitleInput.value.trim();
             if(!title){ setTitleError(true); hoTaskTitleInput.focus(); return; }
             const s = hoSelectedSubject || activeSubjects()[0];
-            if(hoEditTarget){
+            if(hoEditTarget && hoEditTarget.pool){
+              const task = hoEditTarget.task;
+              task.title = title;
+              task.subject = s;
+              task.color = colorForSubject(s);
+              task.review = { ...(task.review || {}), on:rvDraft.on, preset:rvDraft.preset, projectRef:rvDraft.projectRef };
+              if(hoScheduleOn){
+                // 時間を指定したら、表示中の日の時間軸へ移す
+                const [hh, mm] = hoTaskStartInput.value.split(':').map(Number);
+                const startOfDay = hh * 60 + mm;
+                const dur = Math.max(MIN_DUR, Math.min(Number(hoTaskDurInput.value) || defaultPlaceDur(), DAY_MIN - startOfDay));
+                const idx = poolTasks.indexOf(task);
+                if(idx > -1) poolTasks.splice(idx, 1);
+                scheduledTasks.push({
+                  id:'t' + (uid++), title, subject:s, color:task.color,
+                  startMin:viewDay * DAY_MIN + startOfDay, dur, status:'pending', trackStartMin:null,
+                  review:{ ...task.review }, isReview:!!task.isReview, sample:task.sample,
+                });
+                renderBlocks();
+                refreshWeekStrip();
+                emit('place');
+              }
+              renderPool();
+            } else if(hoEditTarget){
               const task = hoEditTarget.task;
               task.title = title;
               task.subject = s;
@@ -3872,6 +3908,20 @@ body{
           });
           hoTaskDeleteBtn.addEventListener('click', () => {
             if(!hoEditTarget) return;
+            if(hoEditTarget.pool){
+              const { task } = hoEditTarget;
+              const idx = poolTasks.indexOf(task);
+              closeHoTaskSheet();
+              if(idx > -1) poolTasks.splice(idx, 1);
+              renderPool();
+              persistAll();
+              showToast(`「${task.title}」を削除しました`, () => {
+                poolTasks.splice(Math.min(idx, poolTasks.length), 0, task);
+                renderPool();
+                persistAll();
+              });
+              return;
+            }
             const { task, rec } = hoEditTarget;
             const idx = scheduledTasks.indexOf(task);
             closeHoTaskSheet();
@@ -5028,7 +5078,7 @@ body{
               u.onclick = () => { if(undo) undo(); toast.classList.remove('show'); };
               toast.classList.add('show');
               clearTimeout(toastTimer);
-              toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+              toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
             }
 
             function render(){
@@ -5379,7 +5429,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.9.1';
+            const APP_VERSION = '1.9.2';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -5395,7 +5445,7 @@ body{
               toastUndo.onclick = () => { if(undo) undo(); toast.classList.remove('show'); };
               toast.classList.add('show');
               clearTimeout(toastTimer);
-              toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+              toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
             }
 
             // ---- 見た目の反映 ----
@@ -5900,7 +5950,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>ウィジェットで今日の予定をすべてスクロールして見られるように、未設定のタスクも表示</span></li>
+                  <li><b>${APP_VERSION}</b><span>未設定のタスクをタップで編集・削除できるように(時間を指定すると時間軸へ)、削除などのお知らせはほかの場所に触れるとすぐ消えるように</span></li>
+                  <li><b>1.9.1</b><span>ウィジェットで今日の予定をすべてスクロールして見られるように、未設定のタスクも表示</span></li>
                   <li><b>1.9.0</b><span>ホーム画面ウィジェット「今日の予定」(進み具合と予定、日付が変わると自動で切り替え)</span></li>
                   <li><b>1.8.4</b><span>アプリアイコンを新デザインに(忘却曲線と復習のチェック)</span></li>
                   <li><b>1.8.3</b><span>新しいアプリアイコン(テーマアイコン対応)、起動画面、通知アイコン、ステータスバーの色をアプリのテーマに合わせる</span></li>
