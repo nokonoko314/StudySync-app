@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ホーム画面ウィジェット「今日の予定」(内容は TaskWidgetProvider が入れる) -->
+<!-- ホーム画面ウィジェット「今日の予定」(一覧の中身は TaskWidgetService が入れる) -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="@drawable/widget_background" android:padding="16dp">
+    android:orientation="vertical" android:background="@drawable/widget_background"
+    android:paddingStart="16dp" android:paddingEnd="10dp" android:paddingTop="16dp" android:paddingBottom="8dp">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginEnd="6dp"
         android:orientation="horizontal" android:gravity="center_vertical">
         <ImageView android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="6dp"
             android:src="@drawable/widget_mark" android:importantForAccessibility="no" />
@@ -15,49 +16,14 @@
     </LinearLayout>
 
     <ProgressBar android:id="@+id/w_progress" style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="match_parent" android:layout_height="4dp" android:layout_marginTop="10dp" android:layout_marginBottom="2dp"
+        android:layout_width="match_parent" android:layout_height="4dp" android:layout_marginTop="10dp" android:layout_marginEnd="6dp"
         android:progressDrawable="@drawable/widget_progress" android:max="1" android:progress="0" android:visibility="gone" />
 
-    <LinearLayout android:id="@+id/w_row1" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:visibility="gone">
-        <TextView android:id="@+id/w_time1" android:layout_width="42dp" android:layout_height="wrap_content"
-            android:textColor="#8C95A6" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
-        <ImageView android:id="@+id/w_bar1" android:layout_width="4dp" android:layout_height="18dp"
-            android:layout_marginEnd="8dp" android:src="@drawable/widget_bar" android:importantForAccessibility="no" />
-        <TextView android:id="@+id/w_title1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:textColor="#EEF1F6" android:textSize="14sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
-        <TextView android:id="@+id/w_tag1" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginStart="6dp" android:paddingStart="7dp" android:paddingEnd="7dp" android:paddingTop="1dp" android:paddingBottom="1dp"
-            android:background="@drawable/widget_tag" android:textColor="#4FC3E0" android:textSize="10sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-    <LinearLayout android:id="@+id/w_row2" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:visibility="gone">
-        <TextView android:id="@+id/w_time2" android:layout_width="42dp" android:layout_height="wrap_content"
-            android:textColor="#8C95A6" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
-        <ImageView android:id="@+id/w_bar2" android:layout_width="4dp" android:layout_height="18dp"
-            android:layout_marginEnd="8dp" android:src="@drawable/widget_bar" android:importantForAccessibility="no" />
-        <TextView android:id="@+id/w_title2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:textColor="#EEF1F6" android:textSize="14sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
-        <TextView android:id="@+id/w_tag2" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginStart="6dp" android:paddingStart="7dp" android:paddingEnd="7dp" android:paddingTop="1dp" android:paddingBottom="1dp"
-            android:background="@drawable/widget_tag" android:textColor="#4FC3E0" android:textSize="10sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-    <LinearLayout android:id="@+id/w_row3" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp" android:visibility="gone">
-        <TextView android:id="@+id/w_time3" android:layout_width="42dp" android:layout_height="wrap_content"
-            android:textColor="#8C95A6" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
-        <ImageView android:id="@+id/w_bar3" android:layout_width="4dp" android:layout_height="18dp"
-            android:layout_marginEnd="8dp" android:src="@drawable/widget_bar" android:importantForAccessibility="no" />
-        <TextView android:id="@+id/w_title3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:textColor="#EEF1F6" android:textSize="14sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
-        <TextView android:id="@+id/w_tag3" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_marginStart="6dp" android:paddingStart="7dp" android:paddingEnd="7dp" android:paddingTop="1dp" android:paddingBottom="1dp"
-            android:background="@drawable/widget_tag" android:textColor="#4FC3E0" android:textSize="10sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-
-    <TextView android:id="@+id/w_empty" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:gravity="center" android:text="アプリを開くと今日の予定が表示されます" android:textColor="#8C95A6" android:textSize="13sp" />
-
-    <TextView android:id="@+id/w_more" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:gravity="end" android:textColor="#8C95A6" android:textSize="11sp" android:visibility="gone" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp">
+        <ListView android:id="@+id/w_list" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:divider="@null" android:dividerHeight="0dp" android:scrollbarStyle="outsideOverlay"
+            android:fadingEdgeLength="16dp" android:requiresFadingEdge="vertical" android:clipToPadding="false" android:paddingBottom="6dp" />
+        <TextView android:id="@+id/w_empty" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:gravity="center" android:text="アプリを開くと今日の予定が表示されます" android:textColor="#8C95A6" android:textSize="13sp" />
+    </FrameLayout>
 </LinearLayout>

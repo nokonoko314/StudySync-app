@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ウィジェットの予定一覧の1行 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_row" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:paddingTop="6dp" android:paddingBottom="6dp" android:paddingEnd="6dp">
+    <TextView android:id="@+id/w_time" android:layout_width="42dp" android:layout_height="wrap_content"
+        android:textColor="#8C95A6" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
+    <ImageView android:id="@+id/w_bar" android:layout_width="4dp" android:layout_height="18dp"
+        android:layout_marginEnd="8dp" android:src="@drawable/widget_bar" android:importantForAccessibility="no" />
+    <TextView android:id="@+id/w_title" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+        android:textColor="#EEF1F6" android:textSize="14sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
+    <TextView android:id="@+id/w_tag" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginStart="6dp" android:paddingStart="7dp" android:paddingEnd="7dp" android:paddingTop="1dp" android:paddingBottom="1dp"
+        android:background="@drawable/widget_tag" android:textColor="#4FC3E0" android:textSize="10sp" android:textStyle="bold" android:visibility="gone" />
+</LinearLayout>

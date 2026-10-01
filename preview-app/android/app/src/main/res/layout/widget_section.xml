@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ウィジェットの一覧の見出し(「未設定 ◯件」など) -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_section" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:paddingTop="12dp" android:paddingBottom="4dp" android:paddingEnd="6dp"
+    android:textColor="#4FC3E0" android:textSize="11sp" android:textStyle="bold" />
