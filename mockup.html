@@ -235,6 +235,11 @@ body{
 .home-app .pool-wrap .pool-head{grid-area:head; flex-direction:row; align-items:baseline; gap:6px; padding-top:0;}
 .home-app .pool-wrap .ho-auto-round{grid-area:auto;} .home-app .pool-wrap .ho-add-round{grid-area:add;}
 .home-app .pool-wrap .pool{grid-area:pool;}
+#hoRepeatRow.off{display:none;}
+.home-app .ho-repeat-sub{display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-top:1px;}
+.home-app .ho-scope-cancel{display:block; margin:8px auto 0; min-height:36px; padding:0 16px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;}
+.home-app .repeat-mark{display:inline-flex; vertical-align:-1px; margin-left:4px; opacity:.75;}
+.home-app .repeat-mark svg{width:11px; height:11px;}
 .home-app .pool-count{font-size:10.5px; font-weight:700; color:var(--ink-faint);}
 .home-app .add-btn{
   display:flex; align-items:center; gap:4px; background:var(--indigo); color:var(--bg); border:none; border-radius:99px;
@@ -1601,6 +1606,7 @@ body{
           .ios-band{position:absolute; left:0; right:0; top:50%; height:36px; margin-top:-18px; border-radius:9px; background:var(--surface); pointer-events:none;}
           @media (prefers-reduced-motion: reduce){ .ios-col{scroll-behavior:auto;} .ios-item{transition:none;} }
           .ho-secondary-actions{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+          .ho-secondary-actions[hidden]{display:none;}
           .ho-sec-btn{
             min-height:44px; border-radius:14px; border:1px solid var(--line); background:var(--surface2);
             color:var(--ink); font:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
@@ -1659,6 +1665,10 @@ body{
                         <span class="ios-band" aria-hidden="true"></span>
                       </div>
                     </div>
+                    <div class="ios-row ios-row-toggle" id="hoRepeatRow" hidden>
+                      <span class="ios-row-label">毎週くり返す<small class="ho-repeat-sub" id="hoRepeatSub"></small></span>
+                      <button type="button" class="st-toggle" role="switch" id="hoRepeatToggle" aria-checked="false" aria-label="毎週同じ曜日・時刻にくり返す"></button>
+                    </div>
                     <input id="hoTaskStartInput" type="hidden">
                     <input id="hoTaskDurInput" type="hidden">
                   </div>
@@ -1669,6 +1679,14 @@ body{
                     <button type="button" class="ho-sec-btn ho-press" id="hoTaskReopenBtn">未完了に戻す</button>
                     <button type="button" class="ho-sec-btn danger ho-press" id="hoTaskDeleteBtn">削除</button>
                   </div>
+                </div>
+                <div class="ho-discard" id="hoRepeatScope" hidden role="alertdialog" aria-labelledby="hoRepeatScopeMsg">
+                  <p id="hoRepeatScopeMsg">毎週の予定です。どこまで変えますか？</p>
+                  <div class="ho-discard-btns">
+                    <button type="button" class="ho-sec-btn ho-press" data-scope="one">この回だけ</button>
+                    <button type="button" class="ho-sec-btn ho-press" data-scope="future">これ以降すべて</button>
+                  </div>
+                  <button type="button" class="ho-scope-cancel" data-scope="cancel">やめる</button>
                 </div>
                 <div class="ho-discard" id="hoDiscardBar" hidden role="alertdialog" aria-labelledby="hoDiscardMsg">
                   <p id="hoDiscardMsg">入力内容を破棄しますか？</p>
@@ -1809,6 +1827,53 @@ body{
           if(APP_MODE) Object.keys(GOOGLE_CALENDARS).forEach(k => delete GOOGLE_CALENDARS[k]);
           window.StudySyncGoogle.onChange(() => renderExternalEvents());
 
+          // ---- 毎週くり返す予定 ----
+          // ルール(曜日・時刻・長さ・内容)から、4週間先までの予定を時間軸に作っておく。作った予定は普通のタスクとして完了・編集できる
+          const REPEATS = [];
+          const REPEAT_WEEKS_AHEAD = 4;
+          const WEEKDAY_JA = ['日','月','火','水','木','金','土'];
+          function weekdayOfDay(d){ const x = new Date(BASE_DATE); x.setDate(x.getDate() + d); return x.getDay(); }
+          function repeatOf(task){ return task && task.repeatId ? REPEATS.find(r => r.id === task.repeatId) || null : null; }
+          function materializeRepeats(){
+            const horizon = Math.floor(nowMinSafe() / DAY_MIN) + REPEAT_WEEKS_AHEAD * 7;
+            let added = 0;
+            REPEATS.forEach(r => {
+              const from = Math.max(r.fromDay, (r.genUntil ?? r.fromDay - 1) + 1);
+              const to = Math.min(horizon, r.untilDay ?? Infinity);
+              for(let d = from; d <= to; d++){
+                if(weekdayOfDay(d) !== r.weekday || (r.skip || []).includes(d)) continue;
+                if(scheduledTasks.some(t => t.repeatId === r.id && Math.floor(t.startMin / DAY_MIN) === d)) continue;
+                scheduledTasks.push({ id:'t' + (uid++), title:r.title, subject:r.subject, color:r.color,
+                  startMin:d * DAY_MIN + r.startOfDay, dur:r.dur, status:'pending', trackStartMin:null,
+                  review:{ ...(r.review || { on:false, preset:'standard' }) }, isReview:false, repeatId:r.id });
+                added++;
+              }
+              r.genUntil = Math.max(r.genUntil ?? -Infinity, horizon);
+            });
+            return added;
+          }
+          // nowMin は後で用意されるので、読み込み直後でも使える「今」
+          function nowMinSafe(){ return (Date.now() - BASE_DATE.getTime()) / 60000; }
+          function createRepeat(fields, day){
+            const r = { id:'w' + (uid++), title:fields.title, subject:fields.subject, color:fields.color,
+              weekday:weekdayOfDay(day), startOfDay:fields.startOfDay, dur:fields.dur,
+              review:{ on:!!(fields.review && fields.review.on), preset:(fields.review && fields.review.preset) || 'standard', projectRef:(fields.review && fields.review.projectRef) ?? null },
+              fromDay:day, untilDay:null, genUntil:fields.existingDay ?? day - 1, skip:[] };
+            REPEATS.push(r);
+            return r;
+          }
+          // この日より後の、まだやっていない回を消す(この日の回は残す)
+          function removeFutureInstances(r, afterDay){
+            for(let i = scheduledTasks.length - 1; i >= 0; i--){
+              const t = scheduledTasks[i];
+              if(t.repeatId === r.id && t.status === 'pending' && Math.floor(t.startMin / DAY_MIN) > afterDay) scheduledTasks.splice(i, 1);
+            }
+          }
+          function stopRepeat(r, lastDay){
+            r.untilDay = lastDay;
+            removeFutureInstances(r, lastDay);
+          }
+
           // ---- アプリ版: 端末への保存と復元 ----
           // 日付は「今日=0」の相対日数で持っているため、保存した日から何日経ったかで全体をずらして戻す
           const STORE_KEY = 'studysync.app.v1';
@@ -1819,7 +1884,7 @@ body{
             const g = window.StudySyncGoogle;
             try {
               localStorage.setItem(STORE_KEY, JSON.stringify({
-                savedDay:todayZeroMs(), uid, scheduledTasks, poolTasks, subjects:SUBJECT_COLORS,
+                savedDay:todayZeroMs(), uid, scheduledTasks, poolTasks, subjects:SUBJECT_COLORS, repeats:REPEATS,
                 archived:[...ARCHIVED_SUBJECTS], projects:PROJECTS,
                 google:{ connected:g.connected, email:g.email, syncOn:g.syncOn, calendars:g.calendars, exportOn:g.exportOn, frequency:g.frequency, exportCalId:g.exportCalId, lastSync:g.lastSync },
               }));
@@ -1969,6 +2034,9 @@ body{
                   return t;
                 };
                 scheduledTasks.splice(0, scheduledTasks.length, ...s.scheduledTasks.map(shift));
+                REPEATS.splice(0, REPEATS.length, ...(s.repeats || []).map(r => ({ ...r,
+                  fromDay:r.fromDay - off, untilDay:r.untilDay == null ? null : r.untilDay - off,
+                  genUntil:r.genUntil == null ? null : r.genUntil - off, skip:(r.skip || []).map(d => d - off) })));
                 poolTasks.splice(0, poolTasks.length, ...s.poolTasks.map(migrateReview));
                 Object.keys(SUBJECT_COLORS).forEach(k => delete SUBJECT_COLORS[k]);
                 Object.assign(SUBJECT_COLORS, s.subjects);
@@ -1984,12 +2052,15 @@ body{
             } catch(_){ loadSamples(); }
             // 前日までに終わらなかった予定を今日へ繰り越す
             if(carryOverEnabled()) scheduledTasks.forEach(t => {
-              if(t.status === 'pending' && !t.isReview && Math.floor(t.startMin / DAY_MIN) < 0){
+              if(t.status === 'pending' && !t.isReview && !t.repeatId && Math.floor(t.startMin / DAY_MIN) < 0){
                 t.startMin = ((t.startMin % DAY_MIN) + DAY_MIN) % DAY_MIN; t.carried = true; carriedOnLaunch++;
               }
             });
+            materializeRepeats();
             setInterval(persistAll, 3000);
             document.addEventListener('visibilitychange', () => { if(document.hidden) persistAll(); });
+            // 日がたったら、次の週の分を作り足す
+            document.addEventListener('visibilitychange', () => { if(!document.hidden && materializeRepeats()){ renderBlocks(); refreshWeekStrip(); } });
             window.addEventListener('pagehide', persistAll);
           }
           function projectsForDay(dayIndex){ return PROJECTS.filter(p => dayIndex >= p.startDay && dayIndex <= p.endDay); }
@@ -2405,7 +2476,7 @@ body{
             content.className = 'block-content';
 
             const title = document.createElement('div'); title.className = 'b-title';
-            title.innerHTML = task.title + (task.carried ? '<span class="carry-badge">繰越</span>' : '') + reviewBadgeHtml(task);
+            title.innerHTML = task.title + (task.repeatId ? '<span class="repeat-mark" title="毎週くり返す予定" aria-label="毎週"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 01-4 4H3"/></svg></span>' : '') + (task.carried ? '<span class="carry-badge">繰越</span>' : '') + reviewBadgeHtml(task);
             const subject = document.createElement('div'); subject.className = 'b-subject';
             subject.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span>${task.subject}`;
             const time = document.createElement('div'); time.className = 'b-time';
@@ -2665,6 +2736,8 @@ body{
           }
 
           function deleteTask(rec){
+            const rr = repeatOf(rec.task);
+            if(rr){ rr.skip = rr.skip || []; rr.skip.push(Math.floor(rec.task.startMin / DAY_MIN)); }
             const idx = scheduledTasks.indexOf(rec.task);
             if(idx > -1) scheduledTasks.splice(idx, 1);
             renderBlocks();
@@ -3879,6 +3952,7 @@ body{
             hoTaskDurInput.value = Math.round(dur);
             document.getElementById('hoStartVal').textContent = hoTaskStartInput.value;
             document.getElementById('hoDurVal').textContent = fmtDuration(Math.round(dur));
+            if(typeof updateRepeatSub === 'function') updateRepeatSub();
           }
           // 回した直後に閉じたり保存したりしても取りこぼさないよう、開いているホイールから値を読み直す
           function syncOpenWheels(){
@@ -3908,7 +3982,22 @@ body{
             hoScheduleToggle.setAttribute('aria-checked', on);
             hoTimeRows.hidden = !on;
             if(!on){ hoStartWheel.hidden = true; hoDurWheel.hidden = true; }
+            // 毎週くり返すのは、時刻を決めた予定だけ
+            document.getElementById('hoRepeatRow').classList.toggle('off', !on);
+            updateRepeatSub();
           }
+          const hoRepeatRow = document.getElementById('hoRepeatRow');
+          const hoRepeatToggle = document.getElementById('hoRepeatToggle');
+          const hoRepeatScope = document.getElementById('hoRepeatScope');
+          let hoRepeatOn = false;
+          // 毎週くり返すときの曜日(新規は表示中の日、編集はその予定の日)
+          function sheetDay(){ return hoEditTarget && !hoEditTarget.pool ? Math.floor(hoEditTarget.task.startMin / DAY_MIN) : viewDay; }
+          function updateRepeatSub(){
+            const sub = document.getElementById('hoRepeatSub');
+            if(sub) sub.textContent = hoRepeatOn ? `毎週${WEEKDAY_JA[weekdayOfDay(sheetDay())]}曜日 ${hoTaskStartInput.value || ''}から` : '';
+          }
+          function setRepeatOn(on){ hoRepeatOn = on; hoRepeatToggle.setAttribute('aria-checked', on); updateRepeatSub(); }
+          hoRepeatToggle.addEventListener('click', () => setRepeatOn(!hoRepeatOn));
           hoScheduleToggle.addEventListener('click', () => setScheduleOn(!hoScheduleOn));
           const hoEditActions = document.getElementById('hoEditActions');
           const hoTaskCompleteBtn = document.getElementById('hoTaskCompleteBtn');
@@ -3967,7 +4056,7 @@ body{
           }
           function hoSheetState(){
             syncOpenWheels();
-            return JSON.stringify([hoTaskTitleInput.value.trim(), hoSelectedSubject, hoNewSubjectInput.value.trim(), hoTaskStartInput.value, hoTaskDurInput.value, rvDraft, hoScheduleOn]);
+            return JSON.stringify([hoTaskTitleInput.value.trim(), hoSelectedSubject, hoNewSubjectInput.value.trim(), hoTaskStartInput.value, hoTaskDurInput.value, rvDraft, hoScheduleOn, hoRepeatOn]);
           }
           function setTitleError(show){
             hoTaskTitleError.hidden = !show;
@@ -3990,6 +4079,9 @@ body{
             hoStartRow.setAttribute('aria-expanded', 'false'); hoDurRow.setAttribute('aria-expanded', 'false');
             const isPool = !!(hoEditTarget && hoEditTarget.pool);
             hoScheduleRow.hidden = !!task && !isPool;
+            hoRepeatRow.hidden = !!task && !isPool && task.isReview;
+            hoRepeatScope.hidden = true;
+            setRepeatOn(!!(task && !isPool && repeatOf(task)));
             if(task && !isPool){
               setScheduleOn(true);
               setTimeDisplay(((task.startMin % DAY_MIN) + DAY_MIN) % DAY_MIN, task.dur);
@@ -4032,12 +4124,47 @@ body{
             }
           }
 
+          let hoRepeatChoice = null;
+          hoRepeatScope.querySelectorAll('[data-scope]').forEach(b => b.addEventListener('click', () => {
+            hoRepeatScope.hidden = true;
+            if(b.dataset.scope === 'cancel') return;
+            if(hoRepeatScope.dataset.mode === 'delete'){
+              const { task } = hoEditTarget;
+              const r = repeatOf(task);
+              if(b.dataset.scope === 'future' && r){
+                const d = Math.floor(task.startMin / DAY_MIN);
+                stopRepeat(r, d - 1);
+                showToast('毎週の予定を、この回から削除しました');
+              }
+              hoRepeatScope.dataset.mode = 'delete-confirmed';
+              hoTaskDeleteBtn.click();
+              hoRepeatScope.dataset.mode = '';
+              return;
+            }
+            hoRepeatChoice = b.dataset.scope;
+            confirmHoTaskCreate();
+          }));
           function confirmHoTaskCreate(){
             commitNewSubject();
             syncOpenWheels();
             const title = hoTaskTitleInput.value.trim();
             if(!title){ setTitleError(true); hoTaskTitleInput.focus(); return; }
             const s = hoSelectedSubject || activeSubjects()[0];
+            // 毎週の予定を変えるときは、この回だけか、これ以降すべてかを先に聞く
+            const editRule = hoEditTarget && !hoEditTarget.pool ? repeatOf(hoEditTarget.task) : null;
+            if(editRule && hoRepeatOn && hoSheetState() !== hoInitialState && !hoRepeatChoice){
+              hoRepeatScope.querySelector('#hoRepeatScopeMsg').textContent = '毎週の予定です。どこまで変えますか？';
+              hoRepeatScope.dataset.mode = 'edit';
+              hoRepeatScope.querySelector('[data-scope="future"]').textContent = 'これ以降すべて';
+              hoRepeatScope.hidden = false;
+              return;
+            }
+            const scope = hoRepeatChoice; hoRepeatChoice = null;
+            const timeFromSheet = () => {
+              const [hh, mm] = (hoTaskStartInput.value || '0:0').split(':').map(Number);
+              const startOfDay = hh * 60 + mm;
+              return { startOfDay, dur:Math.max(MIN_DUR, Math.min(Number(hoTaskDurInput.value) || defaultPlaceDur(), DAY_MIN - startOfDay)) };
+            };
             if(hoEditTarget && hoEditTarget.pool){
               const task = hoEditTarget.task;
               task.title = title;
@@ -4051,7 +4178,10 @@ body{
                 const dur = Math.max(MIN_DUR, Math.min(Number(hoTaskDurInput.value) || defaultPlaceDur(), DAY_MIN - startOfDay));
                 const idx = poolTasks.indexOf(task);
                 if(idx > -1) poolTasks.splice(idx, 1);
-                scheduledTasks.push({
+                if(hoRepeatOn){
+                  createRepeat({ title, subject:s, color:task.color, startOfDay, dur, review:task.review }, viewDay);
+                  materializeRepeats();
+                } else scheduledTasks.push({
                   id:'t' + (uid++), title, subject:s, color:task.color,
                   startMin:viewDay * DAY_MIN + startOfDay, dur, status:'pending', trackStartMin:null,
                   review:{ ...task.review }, isReview:!!task.isReview, sample:task.sample,
@@ -4074,8 +4204,37 @@ body{
               if(Number.isFinite(dur) && dur > 0){
                 task.dur = Math.max(MIN_DUR, Math.min(dur, DAY_MIN - (task.startMin - dayStart)));
               }
+              const thisDay = Math.floor(task.startMin / DAY_MIN);
+              if(editRule && !hoRepeatOn){
+                // くり返しをやめる: この回は残し、次の回から作らない
+                stopRepeat(editRule, thisDay);
+                showToast('毎週のくり返しをやめました(この回は残ります)');
+              } else if(editRule && scope === 'future'){
+                // これ以降すべて: ルールを書き換え、この日より後のまだの回もそろえる
+                Object.assign(editRule, { title, subject:s, color:task.color, startOfDay:task.startMin - dayStart, dur:task.dur,
+                  review:{ on:rvDraft.on, preset:rvDraft.preset, projectRef:rvDraft.projectRef } });
+                scheduledTasks.forEach(t => {
+                  if(t.repeatId !== editRule.id || t === task || t.status !== 'pending') return;
+                  const d = Math.floor(t.startMin / DAY_MIN);
+                  if(d <= thisDay) return;
+                  Object.assign(t, { title, subject:s, color:task.color, startMin:d * DAY_MIN + editRule.startOfDay, dur:editRule.dur, review:{ ...editRule.review } });
+                });
+              } else if(!editRule && hoRepeatOn && !task.isReview){
+                // 今ある予定を、毎週くり返すようにする
+                const r = createRepeat({ title, subject:s, color:task.color, startOfDay:task.startMin - dayStart, dur:task.dur, review:task.review, existingDay:thisDay }, thisDay);
+                task.repeatId = r.id;
+                materializeRepeats();
+                showToast(`毎週${WEEKDAY_JA[r.weekday]}曜日にくり返します`);
+              }
               renderBlocks();
               refreshWeekStrip();
+            } else if(hoScheduleOn && hoRepeatOn){
+              const { startOfDay, dur } = timeFromSheet();
+              const r = createRepeat({ title, subject:s, color:colorForSubject(s), startOfDay, dur, review:rvDraft }, viewDay);
+              materializeRepeats();
+              renderBlocks();
+              refreshWeekStrip();
+              showToast(`毎週${WEEKDAY_JA[r.weekday]}曜日にくり返します(4週間先まで表示)`);
             } else if(hoScheduleOn){
               const [hh, mm] = hoTaskStartInput.value.split(':').map(Number);
               const startOfDay = hh * 60 + mm;
@@ -4114,6 +4273,15 @@ body{
           });
           hoTaskDeleteBtn.addEventListener('click', () => {
             if(!hoEditTarget) return;
+            const delRule = !hoEditTarget.pool ? repeatOf(hoEditTarget.task) : null;
+            if(delRule && hoRepeatScope.dataset.mode !== 'delete-confirmed'){
+              hoRepeatScope.querySelector('#hoRepeatScopeMsg').textContent = '毎週の予定です。どれを削除しますか？';
+              hoRepeatScope.querySelector('[data-scope="future"]').textContent = 'これ以降すべて';
+              hoRepeatScope.dataset.mode = 'delete';
+              hoRepeatScope.hidden = false;
+              return;
+            }
+            hoRepeatScope.dataset.mode = '';
             if(hoEditTarget.pool){
               const { task } = hoEditTarget;
               const idx = poolTasks.indexOf(task);
@@ -5735,7 +5903,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.13.2';
+            const APP_VERSION = '1.14.0';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6277,7 +6445,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
+                  <li><b>${APP_VERSION}</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
+                  <li><b>1.13.2</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
                   <li><b>1.13.1</b><span>統計の「記憶の定着」を忘却曲線で正しく推定するように(勉強していない教科は出さない、理解度を反映)</span></li>
                   <li><b>1.13.0</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
                   <li><b>1.12.1</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
