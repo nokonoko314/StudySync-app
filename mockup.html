@@ -1646,7 +1646,7 @@ body{
           .ho-press{transition:transform .12s ease, opacity .12s ease; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
           .ho-press:active, #hoSubjectChipRow .filter-chip:active{transform:scale(.96); opacity:.85;}
           .ho-discard{
-            position:absolute; left:12px; right:12px; bottom:16px; z-index:2; padding:16px;
+            position:absolute; left:12px; right:12px; bottom:16px; z-index:20; padding:16px;
             background:var(--elevated); border-radius:18px; box-shadow:var(--shadow-lg); border:1px solid var(--line-soft);
           }
           .ho-discard p{margin:0 0 12px; font-weight:800; font-size:15px; color:var(--ink);}
@@ -4103,7 +4103,15 @@ body{
             if(sub) sub.textContent = hoRepeatOn ? `毎週${WEEKDAY_JA[weekdayOfDay(sheetDay())]}曜日 ${hoTaskStartInput.value || ''}から` : '';
           }
           function setRepeatOn(on){ hoRepeatOn = on; hoRepeatToggle.setAttribute('aria-checked', on); updateRepeatSub(); }
-          hoRepeatToggle.addEventListener('click', () => setRepeatOn(!hoRepeatOn));
+          // 毎週くり返す予定は、毎週やること自体が復習になるので、自動復習は切る(くり返しをやめたら元に戻す)
+          let rvBeforeRepeat = null;
+          hoRepeatToggle.addEventListener('click', () => {
+            const on = !hoRepeatOn;
+            setRepeatOn(on);
+            if(on){ rvBeforeRepeat = rvDraft.on; rvDraft.on = false; }
+            else if(rvBeforeRepeat !== null){ rvDraft.on = rvBeforeRepeat; rvBeforeRepeat = null; }
+            renderReviewField(hoEditTarget ? hoEditTarget.task : null);
+          });
           hoScheduleToggle.addEventListener('click', () => setScheduleOn(!hoScheduleOn));
           const hoEditActions = document.getElementById('hoEditActions');
           const hoTaskCompleteBtn = document.getElementById('hoTaskCompleteBtn');
@@ -4215,6 +4223,7 @@ body{
             hoDiscardBar.hidden = true;
             renderHoSubjectChips();
             rvDraft = task && task.review ? { on:task.review.on, preset:task.review.preset, projectRef:task.review.projectRef ?? null } : { on:defaultReviewOn(), preset:'standard', projectRef:null };
+            rvBeforeRepeat = null;
             rvExpanded = rvDraft.on && rvDraft.preset === 'project' && !rvDraft.projectRef;
             renderReviewField(task);
             hoInitialState = hoSheetState();
@@ -6021,7 +6030,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.2';
+            const APP_VERSION = '1.15.3';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6563,7 +6572,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>設定の検索欄をなくす</span></li>
+                  <li><b>${APP_VERSION}</b><span>「毎週くり返す」をオンにすると自動復習をオフに、キャンセルしたときの確認が下のボタンに隠れていたのを修正</span></li>
+                  <li><b>1.15.2</b><span>設定の検索欄をなくす</span></li>
                   <li><b>1.15.1</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
                   <li><b>1.14.1</b><span>タスクの作成画面をすっきり: タイトル→教科→時間→自動復習の順にし、自動復習は1行(タップで詳細)にたたむ</span></li>
                   <li><b>1.14.0</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
