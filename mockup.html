@@ -230,12 +230,18 @@ body{
 .home-app .pool-wrap.drop-target .pool-label{color:var(--indigo);}
 .home-app .pool-head{display:flex; flex-direction:column; flex:none; padding-top:9px;}
 .home-app .pool-label{font-size:10.5px; font-weight:800; color:var(--ink-soft); letter-spacing:.03em;}
+/* 未設定: 見出しとボタンを1行目に、タスクは2行目で横幅いっぱいに使う */
+.home-app .pool-wrap{display:grid; grid-template-columns:1fr auto auto; grid-template-areas:"head auto add" "pool pool pool"; align-items:center; column-gap:8px; row-gap:6px; padding:6px 16px 10px;}
+.home-app .pool-wrap .pool-head{grid-area:head; flex-direction:row; align-items:baseline; gap:6px; padding-top:0;}
+.home-app .pool-wrap .ho-auto-round{grid-area:auto;} .home-app .pool-wrap .ho-add-round{grid-area:add;}
+.home-app .pool-wrap .pool{grid-area:pool;}
+.home-app .pool-count{font-size:10.5px; font-weight:700; color:var(--ink-faint);}
 .home-app .add-btn{
   display:flex; align-items:center; gap:4px; background:var(--indigo); color:var(--bg); border:none; border-radius:99px;
   padding:5px 11px 5px 9px; font-size:10.5px; font-weight:800; cursor:pointer;
 }
 .home-app .pool{display:flex; flex-wrap:wrap; gap:6px; min-height:32px; flex:1; min-width:0; align-items:center; align-content:flex-start;
-  max-height:104px; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; padding:1px 2px 1px 1px;}
+  max-height:calc(33vh / var(--ui-scale, 1)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; padding:1px 2px 1px 1px;}
 /* 未設定が多くて入りきらないときは中でスクロールできる。下にまだあることを薄くして伝える */
 .home-app .pool.scrollable{-webkit-mask-image:linear-gradient(#000 calc(100% - 18px), transparent); mask-image:linear-gradient(#000 calc(100% - 18px), transparent); padding-bottom:14px;}
 .home-app .pool.scrollable.at-end{-webkit-mask-image:none; mask-image:none;}
@@ -254,9 +260,13 @@ body{
 .home-app .chip .tag{flex:0 2 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;}
 /* 未設定の欄が狭いときは、教科名(アイコンで分かる)→ 復習回数の順に隠してタイトルを優先する */
 .home-app .pool{container-type:inline-size;}
-@container (max-width: 300px){ .home-app .chip .tag{display:none;} }
 @container (max-width: 210px){ .home-app .chip .rv-badge, .home-app .chip [class*="badge"]{display:none;} }
 .home-app .chip .tag{font-size:9.5px; font-weight:700; color:var(--ink-soft);}
+/* 未設定のタスクは、教科名を色の札でいつも見せる(左の線も教科の色) */
+.home-app .pool .chip{box-shadow:var(--shadow-sm), inset 0 0 0 1px var(--glass-border), inset 3px 0 0 var(--c, var(--indigo)); padding-left:9px;}
+.home-app .chip .chip-subj{flex:0 0 auto; max-width:9em; overflow:hidden; text-overflow:ellipsis; padding:2px 7px; border-radius:6px;
+  background:var(--c, var(--indigo)); color:#fff; font-size:10.5px; font-weight:800; line-height:1.4; text-shadow:0 1px 1px rgba(0,0,0,.18);}
+@container (max-width: 260px){ .home-app .chip .chip-subj{max-width:5.5em;} }
 .home-app .ho-filter{display:flex; align-items:center; gap:8px; margin:0 16px 0 22px; padding:4px 4px 4px 12px; border-radius:99px; background:color-mix(in srgb, var(--c) 14%, var(--surface)); font-size:12px; font-weight:800; color:var(--ink);}
 .home-app .ho-filter[hidden]{display:none;}
 .home-app .ho-filter-dot{width:8px; height:8px; border-radius:50%; background:var(--c); flex:none;}
@@ -389,12 +399,25 @@ body{
 .home-app .ho-auto-round:active{transform:scale(.94); background:var(--indigo-soft);}
 @media (prefers-reduced-motion: reduce){ .home-app .ho-auto-round:active, .home-app .ho-add-round:active{transform:none;} }
 .home-app .pool-empty{font-size:11px; color:var(--ink-faint); padding:4px 2px;}
-.home-app .ghost-chip{
-  position:fixed; z-index:50; pointer-events:none; background:var(--glass-surface); border:none;
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-  border-left:3px solid var(--c,var(--indigo)); border-radius:8px; padding:7px 10px; font-size:12px;
-  font-weight:700; color:var(--ink); box-shadow:var(--shadow-lg), inset 0 0 0 1px var(--glass-border); opacity:.95;
+/* ドラッグ中のチップ(body 直下に置くので .home-app の外でも効くようにする)。指で隠れないよう指の少し上に出す */
+.ghost-chip{
+  position:fixed; z-index:200; pointer-events:none; display:flex; align-items:center; gap:7px; max-width:min(78vw, 320px);
+  padding:9px 12px 9px 10px; border-radius:12px; background:var(--elevated, #fff); color:var(--ink); font-size:13px; font-weight:800; white-space:nowrap;
+  box-shadow:0 18px 36px -10px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.18), inset 0 0 0 2px var(--c, var(--indigo));
+  transform:translate(-50%, -135%) rotate(-3deg) scale(1.06); transform-origin:50% 100%;
+  animation:ghost-lift .18s cubic-bezier(.2,.9,.3,1.3);
 }
+.ghost-chip .chip-subj{flex:none; padding:2px 7px; border-radius:6px; background:var(--c, var(--indigo)); color:#fff; font-size:10.5px; font-weight:800;}
+.ghost-chip .gt{min-width:0; overflow:hidden; text-overflow:ellipsis;}
+.ghost-chip .gtime{flex:none; margin-left:2px; padding:1px 7px; border-radius:99px; background:var(--c, var(--indigo)); color:#fff; font-size:11px; font-weight:800;}
+.ghost-chip .gtime:empty{display:none;}
+@keyframes ghost-lift{ from{ transform:translate(-50%, -100%) rotate(0) scale(.92); opacity:.4; } }
+.home-app .chip.drag-src{opacity:.35; box-shadow:inset 0 0 0 1.5px var(--c, var(--indigo)); background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; outline:1.5px dashed var(--c, var(--indigo)); outline-offset:-1.5px;}
+.home-app .drop-preview{position:absolute; left:0; right:0; z-index:4; pointer-events:none; border-radius:10px;
+  background:color-mix(in srgb, var(--c, var(--indigo)) 22%, transparent); box-shadow:inset 0 0 0 2px var(--c, var(--indigo));
+  display:flex; align-items:flex-start; padding:5px 8px; font-size:11px; font-weight:800; color:var(--ink); transition:top .06s linear;}
+.home-app .drop-preview::before{content:""; position:absolute; left:0; right:0; top:-1px; height:2px; background:var(--c, var(--indigo)); border-radius:2px;}
+@media (prefers-reduced-motion: reduce){ .ghost-chip{animation:none;} .home-app .drop-preview{transition:none;} }
 
 .home-app .track-wrap{flex:1; position:relative; overflow:hidden; --tl-safe-bottom:96px;}
 .home-app .board-scroll{position:absolute; inset:0; overflow-y:auto; scrollbar-width:none;}
@@ -1396,7 +1419,7 @@ body{
             </div>
             <div class="pool-wrap" id="hoPoolWrap">
               <div class="pool-head">
-                <span class="pool-label">未設定</span>
+                <span class="pool-label">未設定</span><span class="pool-count" id="hoPoolCount"></span>
               </div>
               <div class="pool" id="hoPool"></div>
               <button type="button" class="ho-auto-round" id="hoAutoPlaceBtn" aria-label="未設定タスクを自動配置" title="自動配置">
@@ -2798,6 +2821,7 @@ body{
             pool.innerHTML = '';
             poolTasks.filter(t => !subjectFilter || t.subject === subjectFilter).forEach(makeChip);
             renderPoolEmptyState();
+            const cnt = document.getElementById('hoPoolCount'); if(cnt) cnt.textContent = poolTasks.length ? poolTasks.length + '件' : '';
             setTimeout(updatePoolScroll, 0);
           }
           function makeChip(task){
@@ -2805,7 +2829,7 @@ body{
             const chip = document.createElement('div');
             chip.className = 'chip';
             chip.style.setProperty('--c', task.color);
-            chip.innerHTML = `<span class="subj-icon" aria-hidden="true">${iconForSubject(task.subject)}</span><span class="chip-title">${esc(task.title)}</span>${reviewBadgeHtml(task)}<span class="tag">${esc(task.subject)}</span>`;
+            chip.innerHTML = `<span class="chip-subj">${esc(task.subject)}</span><span class="chip-title">${esc(task.title)}</span>${reviewBadgeHtml(task)}`;
             chip.setAttribute('role', 'button');
             chip.setAttribute('aria-label', `${task.title}(タップで編集、長押しで時間軸へドラッグ)`);
             chip.tabIndex = 0;
@@ -2849,18 +2873,48 @@ body{
             e.preventDefault();
             try { chip.setPointerCapture(e.pointerId); } catch(_){ /* 長押し後はすでに離れていることがある */ }
             if(lifted) document.addEventListener('touchmove', blockTouchScroll, { passive:false });
+            // 持ち上げたチップ(教科の札・タイトル・置いたときの時刻)。マウスやすぐ動かす操作では、少し動いてから出す(タップで一瞬出ないように)
             const ghost = document.createElement('div');
             ghost.className = 'ghost-chip';
             ghost.style.setProperty('--c', task.color);
-            ghost.textContent = task.title;
-            document.body.appendChild(ghost);
+            ghost.innerHTML = `<span class="chip-subj">${esc(task.subject)}</span><span class="gt">${esc(task.title)}</span><span class="gtime"></span>`;
+            const gtime = ghost.querySelector('.gtime');
+            const preview = document.createElement('div');
+            preview.className = 'drop-preview';
+            preview.style.setProperty('--c', task.color);
+            const placeDur = defaultPlaceDur();
+            preview.style.height = (placeDur * PX_PER_MIN) + 'px';
+            let shown = false;
+            function show(){ if(shown) return; shown = true; document.body.appendChild(ghost); chip.classList.add('drag-src'); }
+            if(lifted) show();
             positionGhost(ghost, e.clientX, e.clientY);
+            // 指の位置から、置いたときの開始時刻(5分刻み)を出す。時間軸の外なら null
+            function dropMinute(x, y){
+              const rect = board.getBoundingClientRect();
+              const vis = trackWrap.getBoundingClientRect();
+              if(x < vis.left || x > vis.right || y < vis.top || y > vis.bottom - safeBottom) return null;
+              const maxTop = board.clientHeight - placeDur * PX_PER_MIN;
+              const top = Math.max(0, Math.min(y - rect.top - 14, maxTop));
+              return Math.min(DAY_MIN - placeDur, Math.round(topToMin(top) / 5) * 5);
+            }
 
-            function onMove(ev){ if(ev.pointerId === e.pointerId) positionGhost(ghost, ev.clientX, ev.clientY); }
+            function onMove(ev){
+              if(ev.pointerId !== e.pointerId) return;
+              if(!shown && Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) > 6) show();
+              positionGhost(ghost, ev.clientX, ev.clientY);
+              if(!shown) return;
+              const m = dropMinute(ev.clientX, ev.clientY);
+              if(m === null){ preview.remove(); gtime.textContent = ''; return; }
+              preview.style.top = minToTop(m) + 'px';
+              preview.textContent = `${minutesToLabel(m)} - ${minutesToLabel(m + placeDur)}`;
+              if(!preview.isConnected) board.appendChild(preview);
+              gtime.textContent = minutesToLabel(m);
+            }
             function onUp(ev){
               if(ev.pointerId !== e.pointerId) return;
               try{ chip.releasePointerCapture(e.pointerId); }catch(_){}
-              chip.classList.remove('lifting');
+              chip.classList.remove('lifting', 'drag-src');
+              preview.remove();
               document.removeEventListener('touchmove', blockTouchScroll, { passive:false });
               document.removeEventListener('pointermove', onMove);
               document.removeEventListener('pointerup', onUp);
@@ -2876,15 +2930,12 @@ body{
               const moved = Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY) > 8;
               const overBoard = moved && ev.clientX >= rect.left && ev.clientX <= rect.right &&
                                  ev.clientY >= vis.top && ev.clientY <= vis.bottom - safeBottom;
-              if(overBoard){
-                let top = ev.clientY - rect.top - 14;
-                const placeDur = defaultPlaceDur();
-                const maxTop = board.clientHeight - placeDur * PX_PER_MIN;
-                top = Math.max(0, Math.min(top, maxTop));
+              const dropAt = moved ? dropMinute(ev.clientX, ev.clientY) : null;
+              if(dropAt !== null){
                 const dayStart = viewDay * DAY_MIN;
                 scheduledTasks.push({
                   id:'t' + (uid++), title:task.title, subject:task.subject, color:task.color,
-                  startMin: dayStart + topToMin(top), dur: placeDur, status:'pending', trackStartMin:null,
+                  startMin: dayStart + dropAt, dur: placeDur, status:'pending', trackStartMin:null,
                   review: task.review ? { ...task.review } : { on:defaultReviewOn(), preset:'standard' }, isReview: !!task.isReview, sample:task.sample,
                 });
                 const idx = poolTasks.indexOf(task);
@@ -2899,7 +2950,12 @@ body{
             document.addEventListener('pointerup', onUp);
             document.addEventListener('pointercancel', onUp);
           }
-          function positionGhost(ghost, x, y){ ghost.style.left = (x + 14) + 'px'; ghost.style.top = (y - 14) + 'px'; }
+          // 指の少し上に出す。画面の端では、はみ出さないように内側へ寄せる
+          function positionGhost(ghost, x, y){
+            const half = (ghost.offsetWidth || 160) / 2;
+            ghost.style.left = Math.max(half + 8, Math.min(window.innerWidth - half - 8, x)) + 'px';
+            ghost.style.top = Math.max(ghost.offsetHeight * 1.4 || 56, y) + 'px';
+          }
 
           // ---- 日ごとの記録(過去日は表示確認用のサンプル) ----
           const DEMO_SUBJECTS = ['数学','英語','化学','物理','国語'];
@@ -5679,7 +5735,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.13.1';
+            const APP_VERSION = '1.13.2';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6221,7 +6277,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>統計の「記憶の定着」を忘却曲線で正しく推定するように(勉強していない教科は出さない、理解度を反映)</span></li>
+                  <li><b>${APP_VERSION}</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
+                  <li><b>1.13.1</b><span>統計の「記憶の定着」を忘却曲線で正しく推定するように(勉強していない教科は出さない、理解度を反映)</span></li>
                   <li><b>1.13.0</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
                   <li><b>1.12.1</b><span>アプリに戻ったら毎回すぐGoogleカレンダーと同期、ホームを開くと最新の予定で描き直す</span></li>
                   <li><b>1.12.0</b><span>カレンダーを日曜はじまりに、土曜は青・日曜と祝日は赤で表示、祝日名とGoogleカレンダーの予定を月の表に表示(ホームの週の帯も土日・祝日に色)</span></li>
