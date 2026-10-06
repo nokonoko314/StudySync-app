@@ -1601,6 +1601,7 @@ body{
           .ho-quick button{min-height:36px; padding:0 12px; border:1.5px solid var(--line); border-radius:99px; background:var(--surface); color:var(--ink); font:inherit; font-size:13px; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums; touch-action:manipulation;}
           .ho-quick button small{margin-right:4px; font-size:10.5px; color:var(--indigo); font-weight:800;}
           .ho-quick button[aria-pressed="true"]{border-color:var(--indigo); background:var(--indigo-soft); color:var(--ink);}
+          .ho-quick-empty{font-size:12.5px; color:var(--ink-soft); padding:6px 2px;}
           .ho-quick button.more{color:var(--ink-soft); border-style:dashed;}
           .ho-sheet-footer{position:sticky; bottom:-26px; z-index:3; margin:14px -18px -26px; padding:10px 18px 16px;
             background:linear-gradient(transparent, var(--surface) 18px);}
@@ -4033,8 +4034,9 @@ body{
           }
           function setSubjHint(text){ const h = document.getElementById('hoSubjHint'); if(!h) return; h.textContent = text; h.hidden = !text; }
           // ---- 2. 次の空き時間(その日の予定とGoogleカレンダーの予定を避ける) ----
-          function nextFreeStart(day, dur){
-            const busy = scheduledTasks.filter(t => Math.floor(t.startMin / DAY_MIN) === day && t.status !== 'completed')
+          function nextFreeStart(day, dur, from){
+            const own = hoEditTarget && !hoEditTarget.pool ? hoEditTarget.task : null;
+            const busy = scheduledTasks.filter(t => t !== own && Math.floor(t.startMin / DAY_MIN) === day && t.status !== 'completed')
               .map(t => [t.startMin - day * DAY_MIN, t.startMin - day * DAY_MIN + t.dur]);
             const g = window.StudySyncGoogle;
             if(g && g.connected && g.syncOn) g.events.filter(e => e.day === day && !e.allDay && g.calendars[e.cal]).forEach(e => busy.push([e.start, e.start + e.dur]));
@@ -4042,6 +4044,7 @@ body{
             const nowOfDay = nowMin - day * DAY_MIN;
             let t = day === todayIndex() ? Math.ceil((nowOfDay + 5) / 5) * 5 : 9 * 60;
             if(day < todayIndex()) t = 9 * 60;
+            if(from != null) t = Math.max(t, Math.ceil(from / 5) * 5);
             for(let guard = 0; guard < 300 && t + dur <= DAY_MIN; guard++){
               const hit = busy.find(([a, b]) => t < b && t + dur > a);
               if(!hit) return t;
@@ -4060,18 +4063,53 @@ body{
           const DUR_CHOICES = [25, 30, 50, 60, 90];
           function curStart(){ const [h, m] = (hoTaskStartInput.value || '0:0').split(':').map(Number); return h * 60 + m; }
           function curDur(){ return Number(hoTaskDurInput.value) || defaultPlaceDur(); }
+          function habitStarts(day, subject){
+            const own = hoEditTarget && !hoEditTarget.pool ? hoEditTarget.task : null;
+            const wd = weekdayOfDay(day);
+            const score = new Map();
+            scheduledTasks.forEach(t => {
+              if(t === own || t.isReview || t.sample) return;
+              const d = Math.floor(t.startMin / DAY_MIN);
+              const m = Math.round((t.startMin - d * DAY_MIN) / 30) * 30;
+              const w = 1 + (subject && t.subject === subject ? 2 : 0) + (weekdayOfDay(d) === wd ? 1 : 0) + (t.status === 'completed' ? 1 : 0);
+              score.set(m, (score.get(m) || 0) + w);
+            });
+            // 1回だけの時刻は「いつも」とは言えないので、ある程度くり返しているものだけ
+            return [...score.entries()].filter(([, v]) => v >= 3).sort((a, b) => b[1] - a[1]).map(([m]) => m);
+          }
+          function suggestStarts(day, dur){
+            const minStart = day === todayIndex() ? Math.ceil((nowMin - day * DAY_MIN + 5) / 5) * 5 : 6 * 60;
+            const out = [];
+            const add = (m, tag) => {
+              if(m == null || m < minStart || !isFreeAt(day, m, dur)) return false;
+              if(out.some(x => Math.abs(x.m - m) < 30)) return false;
+              out.push({ m, tag });
+              return true;
+            };
+            const free = nextFreeStart(day, dur);
+            add(free, '次の空き');
+            let habits = 0;
+            for(const m of habitStarts(day, hoSelectedSubject)){ if(habits >= 2) break; if(add(m, 'いつも')) habits++; }
+            // ほかの空き時間: 少しずつ先へ探して、きりのいい時刻(:00 / :30)に寄せる
+            let from = (free ?? minStart) + 60;
+            for(let guard = 0; guard < 24 && out.length < 5 && from < DAY_MIN; guard++){
+              const t = nextFreeStart(day, dur, from);
+              if(t == null) break;
+              const round = Math.ceil(t / 30) * 30;
+              add(isFreeAt(day, round, dur) ? round : t, '');
+              from = t + 150; // 2時間半ずつ先へ(朝・昼・夜にばらける)
+            }
+            return out.sort((a, b) => a.m - b.m);
+          }
           function renderQuickTimes(){
             const sq = document.getElementById('hoStartQuick'), dq = document.getElementById('hoDurQuick');
             if(!sq || !dq) return;
             const day = typeof sheetDay === 'function' ? sheetDay() : viewDay;
             const dur = curDur(), start = curStart();
-            const free = nextFreeStart(day, dur);
-            const base = day === todayIndex() ? Math.floor(nowMin - day * DAY_MIN) : 8 * 60;
-            const hours = [];
-            for(let h = Math.floor(base / 60) + 1; h < 24 && hours.length < 3; h++) if(h * 60 !== free && isFreeAt(day, h * 60, dur)) hours.push(h * 60);
             const lbl = m => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
-            sq.innerHTML = (free != null ? `<button type="button" data-start="${free}" aria-pressed="${start === free}"><small>次の空き</small>${lbl(free)}</button>` : '')
-              + hours.map(m => `<button type="button" data-start="${m}" aria-pressed="${start === m}">${lbl(m)}</button>`).join('');
+            const slots = suggestStarts(day, dur);
+            sq.innerHTML = slots.length ? slots.map(x => `<button type="button" data-start="${x.m}" aria-pressed="${start === x.m}"${x.tag ? ` aria-label="${x.tag} ${lbl(x.m)}"` : ''}>${x.tag ? `<small>${x.tag}</small>` : ''}${lbl(x.m)}</button>`).join('')
+              : '<span class="ho-quick-empty">この日は空いている時間がありません</span>';
             dq.innerHTML = DUR_CHOICES.map(d => `<button type="button" data-dur="${d}" aria-pressed="${dur === d}">${d}分</button>`).join('')
               + `<button type="button" class="more" data-more="1">その他</button>`;
             sq.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => { closeTimeWheels(); setTimeDisplay(Number(b.dataset.start), curDur()); }));
@@ -4145,7 +4183,7 @@ body{
               chip.setAttribute('aria-pressed', on ? 'true' : 'false');
               chip.textContent = name;
               chip.style.cssText = 'cursor:pointer; border:none; font:inherit;' + (on ? ' background:var(--indigo);' : '');
-              chip.addEventListener('click', () => { hoSelectedSubject = name; hoSubjectTouched = true; setSubjHint(''); renderHoSubjectChips(); });
+              chip.addEventListener('click', () => { hoSelectedSubject = name; hoSubjectTouched = true; setSubjHint(''); renderHoSubjectChips(); renderQuickTimes(); });
               hoSubjectChipRow.appendChild(chip);
             });
             hoSubjectChipRow.appendChild(hoNewSubjectInput);
@@ -4442,7 +4480,7 @@ body{
             clearTimeout(guessTimer);
             guessTimer = setTimeout(() => {
               const g = guessSubject(hoTaskTitleInput.value.trim());
-              if(g && g !== hoSelectedSubject){ hoSelectedSubject = g; renderHoSubjectChips(); setSubjHint(`「${g}」を自動で選びました`); }
+              if(g && g !== hoSelectedSubject){ hoSelectedSubject = g; renderHoSubjectChips(); renderQuickTimes(); setSubjHint(`「${g}」を自動で選びました`); }
             }, 250);
           });
           hoTaskTitleInput.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.isComposing) confirmHoTaskCreate(); });
@@ -6030,7 +6068,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.3';
+            const APP_VERSION = '1.15.4';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6572,7 +6610,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>「毎週くり返す」をオンにすると自動復習をオフに、キャンセルしたときの確認が下のボタンに隠れていたのを修正</span></li>
+                  <li><b>${APP_VERSION}</b><span>開始時刻の候補を最大5つに: 次の空き・これまでの予定から読んだ「いつも」の時間・ほかの空き時間</span></li>
+                  <li><b>1.15.3</b><span>「毎週くり返す」をオンにすると自動復習をオフに、キャンセルしたときの確認が下のボタンに隠れていたのを修正</span></li>
                   <li><b>1.15.2</b><span>設定の検索欄をなくす</span></li>
                   <li><b>1.15.1</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
                   <li><b>1.14.1</b><span>タスクの作成画面をすっきり: タイトル→教科→時間→自動復習の順にし、自動復習は1行(タップで詳細)にたたむ</span></li>
