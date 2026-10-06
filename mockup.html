@@ -236,6 +236,18 @@ body{
 .home-app .pool-wrap .ho-auto-round{grid-area:auto;} .home-app .pool-wrap .ho-add-round{grid-area:add;}
 .home-app .pool-wrap .pool{grid-area:pool;}
 #hoRepeatRow.off{display:none;}
+/* 自動復習: 時間の下に1行で */
+.home-app .rv-field-compact{margin-top:12px;}
+.home-app .rv-compact{padding:0;}
+.home-app .rv-compact .rv-row{display:flex; align-items:center; gap:8px; padding:4px 12px 4px 4px; margin:0;}
+.home-app .rv-summary{flex:1; min-width:0; display:flex; align-items:center; gap:10px; min-height:48px; padding:4px 8px; border:none; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:10px;}
+.home-app .rv-summary:disabled{cursor:default;}
+.home-app .rv-summary .rv-text b{font-size:14px;}
+.home-app .rv-summary .rv-text small{font-size:12px; color:var(--indigo); font-weight:700;}
+.home-app .rv-summary:disabled .rv-text small{color:var(--ink-faint);}
+.home-app .rv-chev{width:8px; height:8px; margin-left:auto; border-right:2px solid var(--ink-faint); border-bottom:2px solid var(--ink-faint); transform:rotate(45deg) translateY(-2px); transition:transform .18s;}
+.home-app .rv-summary[aria-expanded="true"] .rv-chev{transform:rotate(225deg) translate(-2px, 0);}
+.home-app .rv-compact .rv-body{padding:4px 12px 12px;}
 .home-app .ho-repeat-sub{display:block; font-size:11px; font-weight:600; color:var(--ink-soft); margin-top:1px;}
 .home-app .ho-scope-cancel{display:block; margin:8px auto 0; min-height:36px; padding:0 16px; border:none; background:none; color:var(--ink-soft); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;}
 .home-app .repeat-mark{display:inline-flex; vertical-align:-1px; margin-left:4px; opacity:.75;}
@@ -1641,8 +1653,6 @@ body{
                   <p class="ho-field-error" id="hoTaskTitleError" role="alert" hidden>タイトルを入力してください</p>
                   <div class="field-label">教科</div>
                   <div style="display:flex; gap:8px; flex-wrap:wrap;" id="hoSubjectChipRow"></div>
-                  <div class="field-label">復習</div>
-                  <div id="hoReviewField"></div>
                   <div class="field-label">時間</div>
                   <div class="ios-group" id="hoTimeFields">
                     <div class="ios-row ios-row-toggle" id="hoScheduleRow">
@@ -1672,6 +1682,7 @@ body{
                     <input id="hoTaskStartInput" type="hidden">
                     <input id="hoTaskDurInput" type="hidden">
                   </div>
+                  <div id="hoReviewField" class="rv-field-compact"></div>
                   <button type="button" class="pillbtn ho-press" id="hoTaskAddBtn">タスクを追加</button>
                   <div class="ho-secondary-actions" id="hoEditActions" hidden>
                     <button type="button" class="ho-sec-btn ho-press" id="hoTaskUnscheduleBtn">未設定に戻す</button>
@@ -3443,6 +3454,7 @@ body{
           // ---- 作成・編集シートの自動復習欄 ----
           const rvField = document.getElementById('hoReviewField');
           let rvDraft = { on:true, preset:'standard', projectRef:null };
+          let rvExpanded = false;
           function defaultReviewOn(){ const ui = window.StudySyncUI; return ui ? !!ui.settings.autoReview : true; }
           function defaultPlaceDur(){ const ui = window.StudySyncUI; return (ui && ui.settings.defaultDur) || DEFAULT_DUR; }
           function renderReviewField(task){
@@ -3459,10 +3471,15 @@ body{
             const days = isProject ? (chosenProject ? reviewDays(rvDraft, base ?? todayIndex()) : []) : reviewDays(rvDraft, base ?? todayIndex());
             const preview = base != null ? days.map(d => shortDate(base + d)).join('・') : `完了した日から ${days.join('・')}日後`;
             const candidates = PROJECTS.filter(p => p.endDay > (base ?? todayIndex()) - 30); // 終わって30日以上経った古いものは候補から外す
-            rvField.innerHTML = `<div class="rv-card">
-              <div class="rv-row"><span class="rv-ico">${ICON_REVIEW}</span><span class="rv-text"><b>忘却曲線で自動復習</b><small>完了すると、復習タスクを自動で時間軸に追加します</small></span>
+            const summary = !rvDraft.on ? 'オフ' : `${presetOf(rvDraft.preset).name}${days.length ? `・${days.length}回` : ''}`;
+            rvField.innerHTML = `<div class="rv-card rv-compact">
+              <div class="rv-row">
+                <button type="button" class="rv-summary" id="rvExpand" aria-expanded="${rvExpanded && rvDraft.on}" ${rvDraft.on ? '' : 'disabled'}>
+                  <span class="rv-ico">${ICON_REVIEW}</span><span class="rv-text"><b>自動復習</b><small>${summary}</small></span>
+                  ${rvDraft.on ? '<span class="rv-chev" aria-hidden="true"></span>' : ''}</button>
                 <button type="button" class="st-toggle" role="switch" id="rvOn" aria-checked="${rvDraft.on}" aria-label="忘却曲線で自動復習"></button></div>
-              <div class="rv-body" ${rvDraft.on ? '' : 'hidden'}>
+              <div class="rv-body" ${rvDraft.on && rvExpanded ? '' : 'hidden'}>
+                <p class="rv-hint" style="margin:0 0 8px">完了すると、忘却曲線にあわせて復習を時間軸に自動で追加します。</p>
                 <div class="rv-presets" role="radiogroup" aria-label="復習のペース">${Object.entries(REVIEW_PRESETS).map(([k, p]) =>
                   `<button type="button" role="radio" data-p="${k}" aria-checked="${rvDraft.preset === k}"><b>${p.name}</b><small>${k === 'project' ? (chosenProject ? `${chosenProject.name}(${shortDate(chosenProject.endDay)})まで` : '下でプロジェクトを選択') : p.sub}</small></button>`
                 ).join('')}</div>
@@ -3471,10 +3488,11 @@ body{
                     `<button type="button" role="radio" data-proj="${p.id}" aria-checked="${rvDraft.projectRef === p.id}"><span class="rv-proj-dot" style="background:${p.color}"></span><span class="rv-proj-text"><b>${p.name}</b><small>${shortDate(p.startDay)}〜${shortDate(p.endDay)}</small></span></button>`
                   ).join('') : '<p class="cd-empty">対象のプロジェクトがありません</p>'}</div>` : ''}
                 <p class="rv-preview">${days.length ? `<span>${days.length}回</span>${preview}` : isProject ? 'プロジェクトを選ぶと復習日が決まります' : ''}</p>
+                <button type="button" class="rv-link" id="rvBulkLink">ほかのタスクもまとめて設定</button>
               </div>
-              <button type="button" class="rv-link" id="rvBulkLink">ほかのタスクもまとめて設定</button>
             </div>`;
             rvField.querySelector('#rvOn').addEventListener('click', () => { rvDraft.on = !rvDraft.on; renderReviewField(task); });
+            rvField.querySelector('#rvExpand').addEventListener('click', () => { rvExpanded = !rvExpanded; renderReviewField(task); });
             rvField.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => {
               rvDraft.preset = b.dataset.p;
               if(rvDraft.preset === 'project' && !rvDraft.projectRef){
@@ -4104,6 +4122,7 @@ body{
             hoDiscardBar.hidden = true;
             renderHoSubjectChips();
             rvDraft = task && task.review ? { on:task.review.on, preset:task.review.preset, projectRef:task.review.projectRef ?? null } : { on:defaultReviewOn(), preset:'standard', projectRef:null };
+            rvExpanded = rvDraft.on && rvDraft.preset === 'project' && !rvDraft.projectRef;
             renderReviewField(task);
             hoInitialState = hoSheetState();
             hoTaskOverlay.classList.add('show');
@@ -5903,7 +5922,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.14.0';
+            const APP_VERSION = '1.14.1';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6445,7 +6464,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
+                  <li><b>${APP_VERSION}</b><span>タスクの作成画面をすっきり: タイトル→教科→時間→自動復習の順にし、自動復習は1行(タップで詳細)にたたむ</span></li>
+                  <li><b>1.14.0</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
                   <li><b>1.13.2</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
                   <li><b>1.13.1</b><span>統計の「記憶の定着」を忘却曲線で正しく推定するように(勉強していない教科は出さない、理解度を反映)</span></li>
                   <li><b>1.13.0</b><span>StudySync プレミアム(アプリ内課金)の準備、アカウントとデータの削除、プライバシーポリシーへのリンク</span></li>
