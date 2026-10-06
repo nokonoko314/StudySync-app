@@ -1595,16 +1595,7 @@ body{
           #hoTaskOverlay .field-label{font-size:10.5px; letter-spacing:.06em; margin:14px 2px 6px; display:flex; align-items:center; gap:8px;}
           .ho-subj-hint{font-size:11px; font-weight:700; color:var(--indigo); letter-spacing:0; text-transform:none;}
           .ho-subj-hint[hidden]{display:none;}
-          .ho-subject-row{display:flex; gap:8px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; margin:0 -18px; padding:2px 18px 4px; scroll-padding:0 18px;
-            -webkit-mask-image:linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent); mask-image:linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 22px), transparent);}
-          .ho-subject-row::-webkit-scrollbar{display:none;}
-          .ho-subject-row > *{flex:none;}
-          .ho-recent{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
-          .ho-recent[hidden]{display:none;}
-          .ho-recent-label{width:100%; font-size:10.5px; font-weight:700; color:var(--ink-faint); margin:0 2px;}
-          .ho-recent button{display:inline-flex; align-items:center; gap:6px; max-width:100%; min-height:36px; padding:0 10px 0 6px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;}
-          .ho-recent button span:last-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-          .ho-recent .chip-subj, .ho-quick .chip-subj{flex:none; padding:1px 6px; border-radius:5px; background:var(--c); color:#fff; font-size:10px; font-weight:800;}
+          .ho-subject-row{display:flex; gap:8px; flex-wrap:wrap;}
           .ho-quick{display:flex; gap:6px; flex-wrap:wrap; padding:2px 12px 12px;}
           .ho-quick:empty{display:none;}
           .ho-quick button{min-height:36px; padding:0 12px; border:1.5px solid var(--line); border-radius:99px; background:var(--surface); color:var(--ink); font:inherit; font-size:13px; font-weight:700; cursor:pointer; font-variant-numeric:tabular-nums; touch-action:manipulation;}
@@ -1615,10 +1606,6 @@ body{
             background:linear-gradient(transparent, var(--surface) 18px);}
           .ho-footer-btns{display:flex; gap:8px; align-items:stretch;}
           .ho-footer-btns .pillbtn{margin-top:0; flex:1;}
-          .ho-cont-btn{flex:none; min-height:48px; padding:0 14px; border:1.5px solid var(--line); border-radius:16px; background:var(--surface); color:var(--ink); font:inherit; font-size:13.5px; font-weight:800; cursor:pointer;}
-          .ho-cont-btn[hidden]{display:none;}
-          .ho-added-note{margin:0 0 6px; min-height:0; font-size:12.5px; font-weight:700; color:var(--sage); text-align:center;}
-          .ho-added-note:empty{display:none;}
           #hoTaskOverlay label.field-label{display:block;}
           #hoTaskOverlay button.pillbtn{border:none; cursor:pointer; font-family:inherit;}
           .ho-field-error{margin:6px 2px 0; font-size:12.5px; font-weight:700; color:var(--danger);}
@@ -1680,7 +1667,6 @@ body{
                   <label class="ho-vh" for="hoTaskTitleInput">タイトル</label>
                   <input class="field ho-title-input" id="hoTaskTitleInput" type="text" placeholder="何をやる？(例: 積分の演習 第4章)" autocomplete="off" enterkeyhint="done">
                   <p class="ho-field-error" id="hoTaskTitleError" role="alert" hidden>タイトルを入力してください</p>
-                  <div class="ho-recent" id="hoRecentRow" hidden></div>
                   <div class="field-label">教科<span class="ho-subj-hint" id="hoSubjHint" hidden></span></div>
                   <div class="ho-subject-row" id="hoSubjectChipRow"></div>
                   <div class="field-label">時間</div>
@@ -1722,9 +1708,7 @@ body{
                     <button type="button" class="ho-sec-btn danger ho-press" id="hoTaskDeleteBtn">削除</button>
                   </div>
                   <div class="ho-sheet-footer">
-                    <p class="ho-added-note" id="hoAddedNote" role="status" aria-live="polite"></p>
                     <div class="ho-footer-btns">
-                      <button type="button" class="ho-cont-btn ho-press" id="hoTaskContinueBtn">続けて追加</button>
                       <button type="button" class="pillbtn ho-press" id="hoTaskAddBtn">タスクを追加</button>
                     </div>
                   </div>
@@ -1879,7 +1863,6 @@ body{
           // ---- 毎週くり返す予定 ----
           // ルール(曜日・時刻・長さ・内容)から、4週間先までの予定を時間軸に作っておく。作った予定は普通のタスクとして完了・編集できる
           const REPEATS = [];
-          const RECENT_SUBJECTS = []; // 1. 最近使った教科(新しい順)。作成画面で左に出す
           const REPEAT_WEEKS_AHEAD = 4;
           const WEEKDAY_JA = ['日','月','火','水','木','金','土'];
           function weekdayOfDay(d){ const x = new Date(BASE_DATE); x.setDate(x.getDate() + d); return x.getDay(); }
@@ -1934,7 +1917,7 @@ body{
             const g = window.StudySyncGoogle;
             try {
               localStorage.setItem(STORE_KEY, JSON.stringify({
-                savedDay:todayZeroMs(), uid, scheduledTasks, poolTasks, subjects:SUBJECT_COLORS, repeats:REPEATS, recentSubjects:RECENT_SUBJECTS,
+                savedDay:todayZeroMs(), uid, scheduledTasks, poolTasks, subjects:SUBJECT_COLORS, repeats:REPEATS,
                 archived:[...ARCHIVED_SUBJECTS], projects:PROJECTS,
                 google:{ connected:g.connected, email:g.email, syncOn:g.syncOn, calendars:g.calendars, exportOn:g.exportOn, frequency:g.frequency, exportCalId:g.exportCalId, lastSync:g.lastSync },
               }));
@@ -2084,7 +2067,6 @@ body{
                   return t;
                 };
                 scheduledTasks.splice(0, scheduledTasks.length, ...s.scheduledTasks.map(shift));
-                RECENT_SUBJECTS.splice(0, RECENT_SUBJECTS.length, ...(s.recentSubjects || []));
                 REPEATS.splice(0, REPEATS.length, ...(s.repeats || []).map(r => ({ ...r,
                   fromDay:r.fromDay - off, untilDay:r.untilDay == null ? null : r.untilDay - off,
                   genUntil:r.genUntil == null ? null : r.genUntil - off, skip:(r.skip || []).map(d => d - off) })));
@@ -4050,34 +4032,6 @@ body{
             return past.length ? past[0].subject : null;
           }
           function setSubjHint(text){ const h = document.getElementById('hoSubjHint'); if(!h) return; h.textContent = text; h.hidden = !text; }
-          // ---- 6. 最近のタスク(タップで内容をまとめて入れる) ----
-          function recentTemplates(){
-            const idNum = t => Number(String(t.id).replace(/\D/g, '')) || 0;
-            const seen = new Set(), out = [];
-            [...scheduledTasks, ...poolTasks].filter(t => !t.isReview && !t.sample).sort((a, b) => idNum(b) - idNum(a)).forEach(t => {
-              if(out.length >= 3 || seen.has(t.title)) return;
-              seen.add(t.title); out.push(t);
-            });
-            return out;
-          }
-          function renderRecentRow(){
-            const row = document.getElementById('hoRecentRow');
-            const items = !hoEditTarget && !hoTaskTitleInput.value.trim() ? recentTemplates() : [];
-            row.hidden = !items.length;
-            if(!items.length){ row.innerHTML = ''; return; }
-            row.innerHTML = '<p class="ho-recent-label">最近のタスクから</p>' + items.map((t, i) =>
-              `<button type="button" data-i="${i}" style="--c:${t.color}"><span class="chip-subj">${esc(t.subject)}</span><span>${esc(t.title)}</span></button>`).join('');
-            row.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => {
-              const t = items[Number(b.dataset.i)];
-              hoTaskTitleInput.value = t.title;
-              hoSelectedSubject = t.subject; hoSubjectTouched = true; setSubjHint('');
-              if(t.review) rvDraft = { on:!!t.review.on, preset:t.review.preset || 'standard', projectRef:t.review.projectRef ?? null };
-              const startOfDay = Number((hoTaskStartInput.value || '9:00').split(':')[0]) * 60 + Number((hoTaskStartInput.value || '9:00').split(':')[1]);
-              setTimeDisplay(startOfDay, t.dur || defaultPlaceDur());
-              setTitleError(false);
-              renderHoSubjectChips(); renderReviewField(null); renderRecentRow();
-            }));
-          }
           // ---- 2. 次の空き時間(その日の予定とGoogleカレンダーの予定を避ける) ----
           function nextFreeStart(day, dur){
             const busy = scheduledTasks.filter(t => Math.floor(t.startMin / DAY_MIN) === day && t.status !== 'completed')
@@ -4172,21 +4126,10 @@ body{
           hoNewSubjectInput.setAttribute('enterkeyhint', 'done');
           hoNewSubjectInput.className = 'ho-new-subject';
 
-          function orderedSubjectsForSheet(){
-            const active = activeSubjects();
-            const recent = RECENT_SUBJECTS.filter(n => active.includes(n)).slice(0, 4);
-            return [...recent, ...active.filter(n => !recent.includes(n))];
-          }
-          function touchRecentSubject(name){
-            const i = RECENT_SUBJECTS.indexOf(name);
-            if(i > -1) RECENT_SUBJECTS.splice(i, 1);
-            RECENT_SUBJECTS.unshift(name);
-            RECENT_SUBJECTS.length = Math.min(RECENT_SUBJECTS.length, 8);
-          }
           let hoSubjectTouched = false;
           function renderHoSubjectChips(){
             hoSubjectChipRow.innerHTML = '';
-            orderedSubjectsForSheet().forEach(name => {
+            activeSubjects().forEach(name => {
               const chip = document.createElement('button');
               chip.type = 'button';
               const on = name === hoSelectedSubject;
@@ -4198,8 +4141,7 @@ body{
               hoSubjectChipRow.appendChild(chip);
             });
             hoSubjectChipRow.appendChild(hoNewSubjectInput);
-            const sel = hoSubjectChipRow.querySelector('[aria-pressed="true"]');
-            if(sel) requestAnimationFrame(() => { const r = hoSubjectChipRow; const l = sel.offsetLeft - r.offsetLeft; if(l < r.scrollLeft || l + sel.offsetWidth > r.scrollLeft + r.clientWidth) r.scrollLeft = l - 18; });
+
           }
 
           function commitNewSubject(){
@@ -4235,8 +4177,7 @@ body{
             hoEditTarget = edit && edit.task ? edit : null;
             const task = hoEditTarget ? hoEditTarget.task : null;
             hoTaskTitleInput.value = task ? task.title : '';
-            // 新しいタスクは、絞り込み中の教科 → 最近使った教科 → 先頭の教科 の順で最初から選んでおく
-            hoSelectedSubject = task ? task.subject : (subjectFilter || RECENT_SUBJECTS.find(n => activeSubjects().includes(n)) || activeSubjects()[0] || null);
+            hoSelectedSubject = task ? task.subject : (subjectFilter || activeSubjects()[0] || null);
             hoSubjectTouched = !!task;
             setSubjHint('');
             hoTaskSheetTitle.textContent = task ? 'タスクを編集' : '新しいタスク';
@@ -4276,9 +4217,6 @@ body{
             rvDraft = task && task.review ? { on:task.review.on, preset:task.review.preset, projectRef:task.review.projectRef ?? null } : { on:defaultReviewOn(), preset:'standard', projectRef:null };
             rvExpanded = rvDraft.on && rvDraft.preset === 'project' && !rvDraft.projectRef;
             renderReviewField(task);
-            renderRecentRow();
-            document.getElementById('hoTaskContinueBtn').hidden = !!task;
-            document.getElementById('hoAddedNote').textContent = '';
             hoInitialState = hoSheetState();
             hoTaskOverlay.classList.add('show');
             if(!task) hoTaskTitleInput.focus();
@@ -4318,22 +4256,6 @@ body{
             hoRepeatChoice = b.dataset.scope;
             confirmHoTaskCreate();
           }));
-          let hoContinue = false;
-          document.getElementById('hoTaskContinueBtn').addEventListener('click', () => { hoContinue = true; confirmHoTaskCreate(); hoContinue = false; });
-          // 続けて追加: 教科・時間の指定はそのままに、タイトルだけ空にして次へ。時間は次の空きへ進める
-          function prepareNextTask(addedTitle){
-            hoTaskTitleInput.value = '';
-            setTitleError(false);
-            setRepeatOn(false);
-            if(hoScheduleOn){ const free = nextFreeStart(viewDay, curDur()); if(free != null) setTimeDisplay(free, curDur()); }
-            hoSubjectTouched = false; setSubjHint('');
-            renderHoSubjectChips(); renderRecentRow();
-            const note = document.getElementById('hoAddedNote');
-            note.textContent = `✓「${addedTitle}」を追加しました。続けて入力できます`;
-            clearTimeout(note._t); note._t = setTimeout(() => { note.textContent = ''; }, 3000);
-            hoInitialState = hoSheetState();
-            hoTaskTitleInput.focus();
-          }
           function confirmHoTaskCreate(){
             commitNewSubject();
             syncOpenWheels();
@@ -4350,7 +4272,6 @@ body{
               return;
             }
             const scope = hoRepeatChoice; hoRepeatChoice = null;
-            touchRecentSubject(s);
             const timeFromSheet = () => {
               const [hh, mm] = (hoTaskStartInput.value || '0:0').split(':').map(Number);
               const startOfDay = hh * 60 + mm;
@@ -4441,7 +4362,6 @@ body{
               poolTasks.push({ id:'p' + (uid++), title, subject:s, color:colorForSubject(s), review:{ ...rvDraft } });
               renderPool();
             }
-            if(hoContinue && !hoEditTarget){ prepareNextTask(title); return; }
             closeHoTaskSheet();
           }
 
@@ -4509,7 +4429,6 @@ body{
           let guessTimer = null;
           hoTaskTitleInput.addEventListener('input', () => {
             if(hoTaskTitleInput.value.trim()) setTitleError(false);
-            renderRecentRow();
             if(hoEditTarget || hoSubjectTouched) return;
             clearTimeout(guessTimer);
             guessTimer = setTimeout(() => {
@@ -6105,7 +6024,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.0';
+            const APP_VERSION = '1.15.1';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6647,7 +6566,7 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>タスクの作成をすばやく: 最近の教科を左に・タイトルから教科を推測・「次の空き」など時刻と所要時間のボタン・最近のタスクから入力・続けて追加・追加ボタンを下に固定</span></li>
+                  <li><b>${APP_VERSION}</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
                   <li><b>1.14.1</b><span>タスクの作成画面をすっきり: タイトル→教科→時間→自動復習の順にし、自動復習は1行(タップで詳細)にたたむ</span></li>
                   <li><b>1.14.0</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
                   <li><b>1.13.2</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
