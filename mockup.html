@@ -5858,9 +5858,6 @@ body{
           <style>
             .st-scroll{--st-scale:1;}
             .st-hero{padding:8px 20px 2px;}
-            .st-search{margin:12px 16px 0; display:flex; align-items:center; gap:8px; padding:0 12px; min-height:40px; border-radius:12px; background:var(--surface2); color:var(--ink-faint);}
-            .st-search svg{width:15px; height:15px; flex:none;}
-            .st-search input{flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:16px; color:var(--ink);}
             .st-section{display:flex; align-items:center; gap:8px; margin:20px 22px 8px; font-size:11.5px; font-weight:800; color:var(--ink-faint); letter-spacing:.06em;}
             .st-section::after{content:""; flex:1; height:1px; background:var(--line-soft);}
             .st-row{width:100%; border:none; background:transparent; font:inherit; color:var(--ink); text-align:left; cursor:pointer; touch-action:manipulation;}
@@ -6024,7 +6021,7 @@ body{
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.1';
+            const APP_VERSION = '1.15.2';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6566,7 +6563,8 @@ body{
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
+                  <li><b>${APP_VERSION}</b><span>設定の検索欄をなくす</span></li>
+                  <li><b>1.15.1</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
                   <li><b>1.14.1</b><span>タスクの作成画面をすっきり: タイトル→教科→時間→自動復習の順にし、自動復習は1行(タップで詳細)にたたむ</span></li>
                   <li><b>1.14.0</b><span>毎週くり返す予定(課題など)。4週間先まで自動で作成、変更・削除は「この回だけ/これ以降すべて」を選べる。新規作成の画面に編集用のボタンが出ていたのを修正</span></li>
                   <li><b>1.13.2</b><span>未設定のタスクに教科名を色の札で表示、未設定の欄を横幅いっぱい(画面の約2/5まで)にして件数も表示、ドラッグ中はチップを持ち上げて置く場所と時刻を時間軸に表示</span></li>
@@ -6781,14 +6779,11 @@ body{
             function renderList(){
               const q = query.trim();
               const sections = SECTIONS().map(([name, rows]) => [name, rows.filter(r => !q || (r.title + (r.sub || '') + name).includes(q))]).filter(([, rows]) => rows.length);
-              const keepFocus = document.activeElement && document.activeElement.id === 'stSearch';
               scroll.innerHTML = `
                 <div class="st-hero settings-hero">
                   <p class="settings-title">設定</p>
                   <p class="settings-sub">表示・連携・通知をカスタマイズ</p>
                 </div>
-                <label class="st-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                  <input type="search" id="stSearch" placeholder="設定を検索" value="${esc(query)}" aria-label="設定を検索"></label>
                 ${sections.map(([name, rows]) => `<p class="st-section">${name}</p><div class="group">${rows.map((r, i) => r.toggle
                   ? `<div class="row st-row"><div class="row-icon" style="background:${r.tint}; color:${r.tint}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[r.icon]}</svg></div>
                       <span class="st-text"><span class="st-title">${r.title}</span>${r.sub ? `<span class="st-sub">${r.sub}</span>` : ''}</span>
@@ -6797,9 +6792,6 @@ body{
                       <span class="st-text"><span class="st-title">${r.title}</span>${r.sub ? `<span class="st-sub">${r.sub}</span>` : ''}</span>
                       ${r.swatch ? `<span class="st-swatch" style="background:${r.swatch}"></span>` : ''}${r.soon ? '<span class="st-soon-badge">今後対応</span>' : ''}${r.value ? `<span class="row-value">${esc(r.value)}</span>` : ''}<span class="chevron" aria-hidden="true"></span></button>`).join('')}</div>`).join('')}
                 ${sections.length ? '' : `<p class="st-empty">「${esc(q)}」に一致する設定はありません</p>`}`;
-              const search = scroll.querySelector('#stSearch');
-              search.addEventListener('input', () => { query = search.value; renderList(); });
-              if(keepFocus){ search.focus(); search.setSelectionRange(search.value.length, search.value.length); }
               scroll.querySelectorAll('.st-row[data-key]').forEach(b => b.addEventListener('click', () => {
                 const key = b.dataset.key;
                 if(key === 'subjects'){ goToDrawer(); return; }
