@@ -4855,6 +4855,8 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
             buildWheelCol, wheelValue, setWheelValue, fmtDuration, pad2,
             rescheduleNotifications:scheduleNotifications, requestNotifPermission, notifPermissionState,
             hasSamples, clearSamples,
+            // 自分で作ったタスクの数(見本は数えない)。空の端末でクラウドを上書きしないために使う
+            userTaskCount(){ return [...scheduledTasks, ...poolTasks].filter(t => !t.sample).length; },
             flush(){ persistAll(); },
             // 使い方ツアーから使う: 見えている未完了カードへスクロールして返す / スワイプの実演 / ヒントを済みにする
             revealBlock(kind){
@@ -6196,7 +6198,7 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.4';
+            const APP_VERSION = '1.15.5';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6738,7 +6740,8 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>開始時刻の候補を最大5つに: 次の空き・これまでの予定から読んだ「いつも」の時間・ほかの空き時間</span></li>
+                  <li><b>${APP_VERSION}</b><span>ブラウザ版でもGoogleアカウント連携に対応、空のデータでクラウドや端末のデータを上書きしないように</span></li>
+                  <li><b>1.15.4</b><span>開始時刻の候補を最大5つに: 次の空き・これまでの予定から読んだ「いつも」の時間・ほかの空き時間</span></li>
                   <li><b>1.15.3</b><span>「毎週くり返す」をオンにすると自動復習をオフに、キャンセルしたときの確認が下のボタンに隠れていたのを修正</span></li>
                   <li><b>1.15.2</b><span>設定の検索欄をなくす</span></li>
                   <li><b>1.15.1</b><span>タスクの作成をすばやく: タイトルから教科を推測、「次の空き」など時刻と所要時間のボタン、タイトル欄を大きく、追加ボタンを下に固定</span></li>
@@ -7925,6 +7928,8 @@ function undoAction(scopeId){
             let deleting = false;
             async function push(force){
               if(!st.user || pushing || deleting) return;
+              // まだ一度もクラウドに保存していない端末で、自分のタスクが1つもないときは保存しない(空のデータで上書きしない)
+              if(!ls.get(SYNCED_KEY) && !window.StudySyncHome.userTaskCount()) return;
               // まだ一度もクラウドに保存できていない = 初めての保存。見本は持っていかない
               if(!ls.get(SYNCED_KEY) && window.StudySyncHome.hasSamples()) window.StudySyncHome.clearSamples();
               const p = localPayload();
@@ -7948,6 +7953,12 @@ function undoAction(scopeId){
               if(meta.fromCache || meta.hasPendingWrites) throw new Error('fromCache');
               return snap.data;
             }
+            const docTasks = doc => {
+              try { const a = JSON.parse(doc.app); return [...(a.scheduledTasks || []), ...(a.poolTasks || [])].filter(t => !t.sample).length; }
+              catch(_){ return 0; }
+            };
+            // クラウド側にタスクがなく、この端末にはある = クラウドのほうが空で上書きされている。端末を正とする
+            const cloudLooksEmpty = doc => docTasks(doc) === 0 && window.StudySyncHome.userTaskCount() > 0;
             const isNewerFromElsewhere = doc => !!(doc && doc.app && doc.device !== deviceId
               && (doc.updatedAt || 0) > Number(ls.get(SYNCED_KEY) || 0) && doc.app !== ls.get(APP_KEY));
             // クラウドの内容を端末に書き込んでから読み込み直す(画面の状態を作り直すより確実)
@@ -7965,7 +7976,8 @@ function undoAction(scopeId){
                 const r = await Auth.signInWithGoogle();
                 st.user = r.user; notify();
                 const doc = await fetchCloud(r.user.uid);
-                if(doc && doc.app){ applyAndReload(doc); return 'restored'; }
+                if(doc && doc.app && !cloudLooksEmpty(doc)){ applyAndReload(doc); return 'restored'; }
+                if(doc && doc.app){ await push(true); return 'created'; }
                 // 初めての連携: 見本は消し、自分で作ったものだけを持っていく
                 window.StudySyncHome.clearSamples();
                 await push(true);
@@ -8023,7 +8035,7 @@ function undoAction(scopeId){
                 try {
                   const doc = await fetchCloud(st.user.uid);
                   // ほかの端末でこの端末より後に保存されていたら、そちらに合わせる
-                  if(isNewerFromElsewhere(doc)){ applyAndReload(doc); return; }
+                  if(isNewerFromElsewhere(doc) && !cloudLooksEmpty(doc)){ applyAndReload(doc); return; }
                 } catch(e){ st.error = friendly(e); notify(); return; }
                 push(true);
               }).catch(e => { st.error = friendly(e); notify(); });
