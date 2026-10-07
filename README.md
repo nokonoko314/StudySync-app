@@ -24,6 +24,8 @@
 | `preview-app/` | `mockup.html` を Capacitor で Android アプリにするプロジェクト |
 | `preview-app/build-www.mjs` | `mockup.html` をアプリ用の `www/index.html` に変換する(アプリ版のフラグ・戻るボタン・ステータスバーなど) |
 | `preview-app/android/` | Android のネイティブ部分(ウィジェット、Googleカレンダーの許可、起動画面、アイコン) |
+| `preview-app/build-web.mjs` | `www/index.html` からブラウザ版 `pages/app/index.html` を作る(`web-shim.js` で Firebase の Web SDK を使う) |
+| `pages/` | GitHub Pages のまとめサイトとブラウザ版(`gh-pages` ブランチへコピーして公開) |
 | `site/` | Firebase Hosting で公開するページ(プライバシーポリシー、アカウント削除の案内) |
 | `docs/` | 要件・設計の資料 |
 | `app/` | 以前の React 版(現在は使っていない) |
