@@ -605,6 +605,8 @@ body{
   transition:top .5s cubic-bezier(.2,.8,.2,1), left .3s ease, width .3s ease;
 }
 .home-app .block.pending{touch-action:none;}
+/* 完了したカード: 縦はスクロール、横のスワイプはアプリで受ける(ないと途中でスワイプが取り消されて戻ってしまう) */
+.home-app .block.completed{touch-action:pan-y;}
 .home-app .block.pending.dragging{opacity:.88; z-index:8;}
 .home-app .block.pending.dragging .block-content{box-shadow:var(--shadow-md); transition:none;}
 .home-app .block.tracking{z-index:15;}
@@ -2937,9 +2939,12 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
             });
           }
           function reopenTask(task){
-            const snap = { status:task.status, dur:task.dur, startMin:task.startMin, quick:task.quickCompleted };
+            // 完了でできた次の復習も覚えておき、「元に戻す」で一緒に戻す
+            const gen = scheduledTasks.find(t => t.id === task.generatedReviewId && t.status === 'pending') || null;
+            const snap = { status:task.status, dur:task.dur, startMin:task.startMin, quick:task.quickCompleted, rating:task.rating, genId:task.generatedReviewId, gen };
             task.status = 'pending';
             task.quickCompleted = false;
+            task.rating = null;
             removeGeneratedReview(task);
             if(task.plannedDur) task.dur = task.plannedDur;
             if(task.plannedStartMin != null) task.startMin = task.plannedStartMin;
@@ -2949,7 +2954,8 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
           function reopenWithUndo(task){
             const snap = reopenTask(task);
             showToast(`「${task.title}」を未完了に戻しました`, () => {
-              Object.assign(task, { status:snap.status, dur:snap.dur, startMin:snap.startMin, quickCompleted:snap.quick });
+              Object.assign(task, { status:snap.status, dur:snap.dur, startMin:snap.startMin, quickCompleted:snap.quick, rating:snap.rating, generatedReviewId:snap.genId });
+              if(snap.gen && !scheduledTasks.includes(snap.gen)) scheduledTasks.push(snap.gen);
               renderBlocks(); refreshWeekStrip();
             });
           }
@@ -6198,7 +6204,7 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
               notifOn:true, notifyLead:5, dailyReminder:false, dailyTime:'20:00',
               customColors:[], hiddenColors:[],
             };
-            const APP_VERSION = '1.15.5';
+            const APP_VERSION = '1.15.6';
             const SETTINGS_KEY = 'studysync.settings.v1';
             let resetting = false;
             let flushSettings = () => {};
@@ -6740,7 +6746,8 @@ body{display:block !important; min-height:0 !important; -webkit-tap-highlight-co
               },
               changelog(el){
                 el.insertAdjacentHTML('beforeend', `<ul class="st-log">
-                  <li><b>${APP_VERSION}</b><span>ブラウザ版でもGoogleアカウント連携に対応、空のデータでクラウドや端末のデータを上書きしないように</span></li>
+                  <li><b>${APP_VERSION}</b><span>完了したタスクを左へスワイプしても途中で戻ってしまい「未完了」を押せない不具合を修正、未完了に戻したあとの「元に戻す」で次の復習も戻すように</span></li>
+                  <li><b>1.15.5</b><span>ブラウザ版でもGoogleアカウント連携に対応、空のデータでクラウドや端末のデータを上書きしないように</span></li>
                   <li><b>1.15.4</b><span>開始時刻の候補を最大5つに: 次の空き・これまでの予定から読んだ「いつも」の時間・ほかの空き時間</span></li>
                   <li><b>1.15.3</b><span>「毎週くり返す」をオンにすると自動復習をオフに、キャンセルしたときの確認が下のボタンに隠れていたのを修正</span></li>
                   <li><b>1.15.2</b><span>設定の検索欄をなくす</span></li>
